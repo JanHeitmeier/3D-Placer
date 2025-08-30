@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { ModelManagerService } from '../../core/services/model-manager.service';
 import { FilePicker } from '@capawesome/capacitor-file-picker';
 import { IonFab, IonFabButton, IonIcon } from '@ionic/angular/standalone';
+import { firstValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-model-importer',
@@ -12,7 +14,7 @@ import { IonFab, IonFabButton, IonIcon } from '@ionic/angular/standalone';
 })
 export class ModelImporterComponent {
 
-  constructor(private modelManager: ModelManagerService) { }
+  constructor(private modelManager: ModelManagerService, private router: Router) { }
 
   async importModel() {
     const result = await FilePicker.pickFiles({
@@ -32,7 +34,14 @@ export class ModelImporterComponent {
       const name = file.name;
       const path = file.path;
       if (path) {
-        this.modelManager.importModel(path, name);
+        // import and try auto-generate thumbnail inside service
+        const newModel = await this.modelManager.importModel(path, name);
+        // If auto-generation failed and model has no thumbnailPath, navigate to editor so user can create one
+        const currentModels = await firstValueFrom(this.modelManager.models$);
+        const fresh = currentModels.find(m => m.id === newModel.id);
+        if (fresh && !fresh.thumbnailPath) {
+          this.router.navigate(['/thumbnail-editor', fresh.id], { queryParams: { autoCapture: '1' } });
+        }
       }
     }
   }

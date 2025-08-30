@@ -5,15 +5,21 @@
     </ion-buttons>
     <ion-title>Create Thumbnail</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="takeThumbnail()">
-        <ion-icon slot="icon-only" name="camera"></ion-icon>
-      </ion-button>
+      <ion-button (click)="takeThumbnail()">Take Thumbnail</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <div #canvasContainer class="canvas-container"></div>
+  <div #canvasContainer class="canvas-container">
+    <div *ngIf="loading" class="loading-overlay">
+      <ion-spinner name="crescent"></ion-spinner>
+      <div class="loading-text">Loading model...</div>
+    </div>
+    <div *ngIf="loadError" class="error-overlay">
+      <div class="error-text">{{ loadError }}</div>
+    </div>
+  </div>
   <div class="controls">
     <ion-range min="0.1" max="5" value="1.5" step="0.1" (ionChange)="onScaleChange($event)">
       <ion-label slot="start">Scale</ion-label>
