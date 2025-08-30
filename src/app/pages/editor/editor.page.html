@@ -1,0 +1,31 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/scenes"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ scene.name }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="saveScene()">
+        <ion-icon slot="icon-only" name="save"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <app-three-viewport></app-three-viewport>
+  <app-properties-panel></app-properties-panel>
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button>
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="top">
+      <ion-fab-button (click)="addModel()">
+        <ion-icon name="cube"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="setBackground()">
+        <ion-icon name="image"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
+</ion-content>

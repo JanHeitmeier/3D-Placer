@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Model Library</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-grid>
+    <ion-row>
+      <ion-col size="6" *ngFor="let model of models">
+        <ion-card [routerLink]="['/thumbnail-editor', model.id]">
+          <div class="thumbnail-container">
+            <img *ngIf="model.thumbnailUrl" [src]="model.thumbnailUrl" />
+            <div *ngIf="!model.thumbnailUrl" class="no-image-placeholder">
+              <span>No Image yet</span>
+            </div>
+          </div>
+          <ion-card-header>
+            <ion-card-title>{{ model.name }}</ion-card-title>
+          </ion-card-header>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <app-model-importer></app-model-importer>
+</ion-content>

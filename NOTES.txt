@@ -1,3 +1,5 @@
+THIS DOCUMENT CAN NOT BE CHANGED WITHOUT ASKING FIRST!
+
 # 3D-Placer: Application Architecture Design
 
 This document outlines the architecture for the 3D-Placer application, an Ionic/Angular-based mobile tool for quick 3D scene prototyping.
