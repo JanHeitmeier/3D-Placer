@@ -3,4 +3,5 @@ export interface ModelInfo {
   name: string;
   path: string;
   thumbnailPath?: string;
+  thumbnailUrl?: string;
 }

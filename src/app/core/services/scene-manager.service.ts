@@ -3,14 +3,24 @@ import { StorageService } from './storage.service';
 import { Scene } from '../models/scene.model';
 import { v4 as uuidv4 } from 'uuid';
 import { SceneInfo } from '../models/scene-info.model';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SceneManagerService {
   private readonly SCENES_MANIFEST_KEY = 'scenes-manifest.json';
+  private scenesSubject = new BehaviorSubject<SceneInfo[]>([]);
+  public scenes$: Observable<SceneInfo[]> = this.scenesSubject.asObservable();
 
-  constructor(private storageService: StorageService) { }
+  constructor(private storageService: StorageService) {
+    this.loadScenes();
+  }
+
+  private async loadScenes(): Promise<void> {
+    const manifest = await this.storageService.readJSON(this.SCENES_MANIFEST_KEY) || { scenes: [] };
+    this.scenesSubject.next(manifest.scenes);
+  }
 
   async getScenes(): Promise<SceneInfo[]> {
     const manifest = await this.storageService.readJSON(this.SCENES_MANIFEST_KEY) || { scenes: [] };
@@ -33,6 +43,7 @@ export class SceneManagerService {
       manifest.scenes.push(sceneInfo);
     }
     await this.storageService.saveJSON(this.SCENES_MANIFEST_KEY, manifest);
+    this.scenesSubject.next(manifest.scenes);
   }
 
   async createNewScene(name: string): Promise<Scene> {

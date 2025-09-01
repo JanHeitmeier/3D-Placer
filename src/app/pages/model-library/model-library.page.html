@@ -8,23 +8,20 @@
 </ion-header>
 
 <ion-content>
-  <ion-grid>
-    <ion-row>
-      <ion-col size="6" *ngFor="let model of models">
-        <ion-card [routerLink]="['/thumbnail-editor', model.id]">
-          <div class="thumbnail-container">
-            <img *ngIf="model.thumbnailUrl" [src]="model.thumbnailUrl" />
-            <div *ngIf="!model.thumbnailUrl" class="no-image-placeholder">
-              <span>No Image yet</span>
-            </div>
-          </div>
-          <ion-card-header>
-            <ion-card-title>{{ model.name }}</ion-card-title>
-          </ion-card-header>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+  <ion-list>
+    <ion-item *ngFor="let model of (modelManager.models$ | async)">
+      <ion-thumbnail slot="start">
+        <img [src]="model.thumbnailUrl" />
+      </ion-thumbnail>
+      <ion-label>{{ model.name }}</ion-label>
+      <ion-button (click)="openModel(model.id)">Open</ion-button>
+      <ion-button (click)="deleteModel(model.id)" color="danger">Delete</ion-button>
+    </ion-item>
+  </ion-list>
 
-  <app-model-importer></app-model-importer>
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button>
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

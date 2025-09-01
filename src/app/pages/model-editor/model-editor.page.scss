@@ -1,0 +1,13 @@
+.thumbnail-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-image-placeholder {
+  background: #eee;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

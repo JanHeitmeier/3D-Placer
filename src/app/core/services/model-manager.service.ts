@@ -25,7 +25,13 @@ export class ModelManagerService {
 
   private async loadModelsFromStorage(): Promise<void> {
     const manifest = await this.storageService.readJSON(this.MODELS_MANIFEST_KEY) || { models: [] };
-    this.modelsSubject.next(manifest.models);
+    const models = manifest.models as ModelInfo[];
+    
+    const modelsWithUrls = await Promise.all(models.map(async (model) => {
+        const url = model.thumbnailPath ? await this.getThumbnailUrlFromPath(model.thumbnailPath) : undefined;
+        return { ...model, thumbnailUrl: url };
+    }));
+    this.modelsSubject.next(modelsWithUrls);
   }
 
   async importModel(sourceUri: string, name: string): Promise<ModelInfo> {
@@ -249,6 +255,23 @@ export class ModelManagerService {
         console.error('Unable to get thumbnail for', modelId, e2);
         return null;
       }
+    }
+  }
+
+  private async getThumbnailUrlFromPath(path: string): Promise<string | undefined> {
+    try {
+        const fileUri = await Filesystem.getUri({
+            directory: Directory.Data,
+            path: path
+        });
+        return Capacitor.convertFileSrc(fileUri.uri);
+    } catch (e) {
+        try {
+            const result = await Filesystem.readFile({ path: path, directory: Directory.Data });
+            return `data:image/png;base64,${result.data as string}`;
+        } catch (e2) {
+            return undefined;
+        }
     }
   }
 }
