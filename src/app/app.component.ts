@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { IonApp, IonSplitPane, IonMenu, IonContent, IonList, IonListHeader, IonNote, IonMenuToggle, IonItem, IonIcon, IonLabel, IonRouterOutlet } from '@ionic/angular/standalone';
+import { IonMenu, IonContent, IonList, IonListHeader, IonMenuToggle, IonItem, IonIcon, IonLabel, IonRouterOutlet } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { list, cube, create, build, settings, helpCircle } from 'ionicons/icons';
 
@@ -10,7 +10,7 @@ import { list, cube, create, build, settings, helpCircle } from 'ionicons/icons'
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, IonApp, IonSplitPane, IonMenu, IonContent, IonList, IonListHeader, IonNote, IonMenuToggle, IonItem, IonIcon, IonLabel, IonRouterOutlet],
+  imports: [CommonModule, RouterLink, RouterLinkActive, IonMenu, IonContent, IonList, IonListHeader, IonMenuToggle, IonItem, IonIcon, IonLabel, IonRouterOutlet],
 })
 export class AppComponent {
   public mainMenuItems = [
@@ -25,7 +25,7 @@ export class AppComponent {
     { title: 'Help', url: '/help', icon: 'help-circle' },
   ];
   
-  // Keep this for backward compatibility
+  //  Backwards comp.
   public get appPages() {
     return [...this.mainMenuItems, ...this.bottomMenuItems];
   }

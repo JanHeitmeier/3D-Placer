@@ -4,4 +4,5 @@ export interface ModelInfo {
   path: string;
   thumbnailPath?: string;
   thumbnailUrl?: string;
+  thumbnailGenerated?: boolean;
 }

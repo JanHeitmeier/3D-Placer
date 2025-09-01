@@ -7,20 +7,40 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <ion-list>
-    <ion-item *ngFor="let model of (modelManager.models$ | async)">
-      <ion-thumbnail slot="start">
-        <img [src]="model.thumbnailUrl" />
-      </ion-thumbnail>
-      <ion-label>{{ model.name }}</ion-label>
-      <ion-button (click)="openModel(model.id)">Open</ion-button>
-      <ion-button (click)="deleteModel(model.id)" color="danger">Delete</ion-button>
-    </ion-item>
-  </ion-list>
+<ion-content class="ion-padding">
+  <ion-grid>
+    <ion-row>
+      <ion-col size="6" size-md="4" size-lg="3" *ngFor="let model of (modelManager.models$ | async)">
+        <ion-card>
+          <div class="thumbnail-container">
+            <img *ngIf="model.thumbnailUrl" [src]="model.thumbnailUrl" alt="{{ model.name }}">
+            <div *ngIf="!model.thumbnailUrl" class="no-image-placeholder">No preview</div>
+          </div>
+          <ion-card-header>
+            <ion-card-title>{{ model.name }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-button expand="block" (click)="openModelEditor(model.id)">
+              <ion-icon name="open" slot="start"></ion-icon>
+              Open
+            </ion-button>
+            <ion-button expand="block" color="danger" (click)="deleteModel(model.id)">
+              <ion-icon name="trash" slot="start"></ion-icon>
+              Delete
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <div class="empty-state" *ngIf="(modelManager.models$ | async)?.length === 0">
+    <h2>No Models Yet</h2>
+    <p>Click the + button below to add your first 3D model</p>
+  </div>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button>
+    <ion-fab-button (click)="openFilePicker()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>

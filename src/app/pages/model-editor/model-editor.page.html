@@ -3,16 +3,40 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Model Editor</ion-title>
+    <ion-title>Model Viewer: <ion-text *ngIf="model">{{ model.name }}</ion-text></ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <div *ngIf="model">
-    <h2>{{ model.name }}</h2>
-    <p>{{ model.id }}</p>
-  </div>
-  <div *ngIf="!model">
-    <p>No model loaded.</p>
+  <!-- Full-height canvas container -->
+  <div class="threejs-container" #rendererContainer></div>
+  
+  <!-- Floating controls panel -->
+  <div class="floating-controls">
+    <div class="button-row">
+      <ion-button (click)="applyRandomTexture()" size="small">
+        <ion-icon name="color-palette-outline" slot="start"></ion-icon>
+        Random Texture
+      </ion-button>
+      
+      <ion-button (click)="generateNewThumbnail()" size="small">
+        <ion-icon name="camera-outline" slot="start"></ion-icon>
+        Save Thumbnail
+      </ion-button>
+      
+      <ion-button (click)="resetView()" size="small">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Reset View
+      </ion-button>
+    </div>
+    
+    <div class="texture-size-selector" *ngIf="showTextureOptions">
+      <ion-label>Texture Size:</ion-label>
+      <div class="button-row">
+        <ion-button (click)="applyTexture(256)" size="small">256px</ion-button>
+        <ion-button (click)="applyTexture(512)" size="small">512px</ion-button>
+        <ion-button (click)="applyTexture(1024)" size="small">1024px</ion-button>
+      </div>
+    </div>
   </div>
 </ion-content>
