@@ -1,4 +1,3 @@
-
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -14,16 +13,24 @@ import { list, cube, create, build, settings, helpCircle } from 'ionicons/icons'
   imports: [CommonModule, RouterLink, RouterLinkActive, IonApp, IonSplitPane, IonMenu, IonContent, IonList, IonListHeader, IonNote, IonMenuToggle, IonItem, IonIcon, IonLabel, IonRouterOutlet],
 })
 export class AppComponent {
-  public appPages = [
+  public mainMenuItems = [
     { title: 'Model Library', url: '/model-library', icon: 'cube' },
-    { title: 'Scenes', url: '/scenes', icon: 'list' },
     { title: 'Model Editor', url: '/model-editor', icon: 'create' },
+    { title: 'Scenes', url: '/scenes', icon: 'list' },
     { title: 'Scene Editor', url: '/scene-editor', icon: 'build' },
+  ];
+  
+  public bottomMenuItems = [
     { title: 'Settings', url: '/settings', icon: 'settings' },
     { title: 'Help', url: '/help', icon: 'help-circle' },
   ];
+  
+  // Keep this for backward compatibility
+  public get appPages() {
+    return [...this.mainMenuItems, ...this.bottomMenuItems];
+  }
+  
   constructor() {
     addIcons({ list, cube, create, build, settings, helpCircle });
   }
 }
-

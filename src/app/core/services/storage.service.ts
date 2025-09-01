@@ -84,8 +84,6 @@ export class StorageService {
         recursive: true
       });
     } catch (e: any) {
-      // Ignore error if directory already exists. Capacitor may return different
-      // error shapes/messages depending on platform. Check for common indicators.
       const msg = (e && (e.message || e.error || '')).toString();
       const code = e && e.code;
       if (msg.toLowerCase().includes('already exists') || code === 'OS-PLUG-FILE-0010') {
@@ -108,4 +106,16 @@ export class StorageService {
       directory: Directory.Data
     });
   }
+
+async deleteFile(path: string): Promise<void> {
+    try {
+      await Filesystem.deleteFile({
+        path: path,
+        directory: Directory.Data
+      });
+    } catch (e) {
+      console.warn(`Could not delete file at ${path}:`, e);
+    }
+  }
+
 }

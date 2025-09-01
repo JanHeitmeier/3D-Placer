@@ -46,6 +46,14 @@ export class SceneManagerService {
     this.scenesSubject.next(manifest.scenes);
   }
 
+  async deleteScene(id: string): Promise<void> {
+    await this.storageService.deleteFile(`scenes/scene_${id}.json`);
+    const manifest = await this.storageService.readJSON(this.SCENES_MANIFEST_KEY) || { scenes: [] };
+    manifest.scenes = manifest.scenes.filter((s: SceneInfo) => s.id !== id);
+    await this.storageService.saveJSON(this.SCENES_MANIFEST_KEY, manifest);
+    this.scenesSubject.next(manifest.scenes);
+  }
+
   async createNewScene(name: string): Promise<Scene> {
     const newScene: Scene = {
       id: uuidv4(),
