@@ -59,7 +59,12 @@ export class ModelLibraryPage implements OnInit, OnDestroy {
     }
 
     for (const model of models) {
-      if (!model.thumbnailUrl && !model.thumbnailGenerated && !this.processingModels.has(model.id)) {
+      if (!model.thumbnailGenerated && !this.processingModels.has(model.id)) {
+        console.log(`Model ${model.name} needs thumbnail generation. Status: ${JSON.stringify({
+          hasUrl: !!model.thumbnailUrl,
+          thumbnailGenerated: model.thumbnailGenerated
+        })}`);
+        
         this.processingModels.add(model.id);
         
         try {
@@ -87,6 +92,11 @@ export class ModelLibraryPage implements OnInit, OnDestroy {
         } finally {
           this.processingModels.delete(model.id);
         }
+      } else if (model.thumbnailGenerated && !model.thumbnailUrl) {
+        // This handles the case where a thumbnail was generated but the URL is missing
+        // (which can happen due to caching or storage issues)
+        console.log(`Model ${model.name} has thumbnailGenerated=true but no URL, refreshing...`);
+        await this.modelManager.refreshThumbnails();
       }
     }
   }

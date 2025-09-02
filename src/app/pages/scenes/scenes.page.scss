@@ -1,0 +1,148 @@
+.edit-panel {
+  padding: 16px;
+  border-bottom: 1px solid #d7d8da;
+}
+
+.edit-panel-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background-color: #f4f5f8;
+}
+
+.edit-panel-wrapper.visible {
+  max-height: 200px; /* panel Size */
+}
+
+.panel-grid {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+.thumbnail-container {
+  width: 120px;
+  height: 120px;
+  border: 1px solid #ccc;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+}
+
+.placeholder-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.placeholder-image ion-icon {
+  font-size: 64px;
+  color: #ccc;
+}
+
+.details-grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.scene-name {
+  margin-bottom: 16px;
+}
+
+.scene-name ion-input {
+  --padding-start: 0;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+}
+
+.scene-info p {
+  margin: 8px 0;
+  color: #666;
+}
+
+.empty-state {
+  text-align: center;
+  margin-top: 100px;
+  padding: 20px;
+}
+
+.empty-state h2 {
+  color: #555;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.empty-state p {
+  color: #777;
+  font-size: 16px;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-container {
+  width: 90%;
+  max-width: 400px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.popup-container h2 {
+  margin-top: 0;
+  color: var(--ion-color-primary);
+  font-size: 20px;
+}
+
+.popup-container p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.scene-name-input {
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  --padding-start: 10px;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.scene-item {
+  --border-width: 0;
+  border-bottom: 1px solid #d7d8da;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+}
+
+.loading-container p {
+  margin-top: 16px;
+  color: #666;
+}

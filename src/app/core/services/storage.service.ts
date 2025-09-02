@@ -11,7 +11,7 @@ export class StorageService {
   async saveJSON(path: string, data: any): Promise<void> {
     const parentDir = path.substring(0, path.lastIndexOf('/'));
     if (parentDir) {
-      await this.createDir(parentDir); // Use the createDir method instead
+      await this.createDir(parentDir); 
     }
 
     await Filesystem.writeFile({
@@ -38,7 +38,7 @@ export class StorageService {
   async copyFile(sourceUri: string, destinationPath: string): Promise<void> {
     const parentDir = destinationPath.substring(0, destinationPath.lastIndexOf('/'));
     if (parentDir) {
-      await this.createDir(parentDir); // Use the createDir method instead
+      await this.createDir(parentDir);
     }
 
     await Filesystem.copy({
@@ -79,51 +79,28 @@ export class StorageService {
   }
 
   async saveBase64(path: string, data: string): Promise<void> {
-    const parentDir = path.substring(0, path.lastIndexOf('/'));
-    if (parentDir) {
-      await this.createDir(parentDir);
-    }
-
     try {
-      // Make sure the path is clear before writing
-      try {
-        const stat = await Filesystem.stat({
-          path: path,
-          directory: Directory.Data
-        });
-        
-        // If this is a directory, delete it first
-        if (stat.type === 'directory') {
-          console.log(`Found directory instead of file at ${path}, removing it...`);
-          try {
-            await Filesystem.rmdir({
-              path: path,
-              directory: Directory.Data,
-              recursive: true
-            });
-            // Wait a short time to ensure filesystem operations complete
-            await new Promise(resolve => setTimeout(resolve, 100));
-          } catch (rmError) {
-            console.error(`Failed to remove directory at ${path}:`, rmError);
-            
-            // Try an alternative approach - create a different filename
-            const pathParts = path.split('.');
-            const basePath = pathParts.slice(0, -1).join('.');
-            const extension = pathParts.length > 1 ? `.${pathParts[pathParts.length - 1]}` : '';
-            path = `${basePath}_${Date.now()}${extension}`;
-            console.log(`Using alternative path: ${path}`);
-          }
-        }
-      } catch (e) {
-        // Path doesn't exist, which is fine
+      const parentDir = path.substring(0, path.lastIndexOf('/'));
+      if (parentDir) {
+        await this.createDir(parentDir);
       }
 
-      // Now write the file
+      try {
+        await this.deleteFile(path);
+        console.log(`Removed existing file at ${path}`);
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+      } catch (e) {
+        console.log(e);
+      }
+
       await Filesystem.writeFile({
         path: path,
         data: data,
         directory: Directory.Data
       });
+
+      console.log(`File saved successfully to ${path}`);
     } catch (e) {
       console.error(`Error saving file to ${path}:`, e);
       throw e;
@@ -141,4 +118,54 @@ export class StorageService {
     }
   }
 
+  async downloadAndSaveImage(url: string, destinationPath: string): Promise<void> {
+    try {
+      const parentDir = destinationPath.substring(0, destinationPath.lastIndexOf('/'));
+      if (parentDir) {
+        await this.createDir(parentDir);
+      }
+
+      const response = await fetch(url);
+      const blob = await response.blob();
+
+      const reader = new FileReader();
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          const base64Data = base64.split(',')[1];
+          resolve(base64Data);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      await this.saveBase64(destinationPath, base64Data);
+      console.log(`Image downloaded and saved to ${destinationPath}`);
+    } catch (e) {
+      console.error(`Error downloading and saving image from ${url}:`, e);
+      throw e;
+    }
+  }
+
+  async saveBase64Image(dataUrl: string, path: string): Promise<void> {
+    try {
+      const base64Data = dataUrl.split(',')[1];
+      
+      const parentDir = path.substring(0, path.lastIndexOf('/'));
+      if (parentDir) {
+        await this.createDir(parentDir);
+      }
+
+      await Filesystem.writeFile({
+        path: path,
+        data: base64Data,
+        directory: Directory.Data
+      });
+
+      console.log('Base64 image saved successfully:', path);
+    } catch (error) {
+      console.error('Error saving base64 image:', error);
+      throw error;
+    }
+  }
 }

@@ -44,45 +44,155 @@ ion-content {
   z-index: 10;
 }
 
-.control-section {
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
-}
+.floating-controls {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background-color: rgba(58, 58, 58, 0.39);
+  padding: 8px;
+  border-radius: 8px 0 0 8px;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-width: 280px;
+  max-height: 70vh;
+  overflow-y: auto;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 
-.control-header {
-  margin-bottom: 8px;
+  &.collapsed {
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
 
   ion-label {
-    font-size: 14px;
+    color: #000000 !important;
     font-weight: 500;
+    font-size: 11px;
+    margin: 1px 0;
+  }
+
+  ion-button {
+    --padding-start: 6px;
+    --padding-end: 6px;
+    --padding-top: 2px;
+    --padding-bottom: 2px;
+    font-size: 11px;
+    height: 26px;
+    margin: 0;
+  }
+
+  .control-header ion-label {
+    font-size: 14px !important;
+    font-weight: 600;
+  }
+
+  .projection-selector > ion-label {
+    font-size: 13px !important;
+  }
+
+  .control-group ion-label {
+    font-size: 12px !important;
   }
 }
 
-.scale-control {
-  margin-bottom: 15px;
-}
+.panel-toggle {
+  position: absolute;
+  top: 8px;
+  right: 0;
+  width: 24px;
+  height: 32px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px 0 0 4px;
+  cursor: pointer;
+  z-index: 11;
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.2);
 
-.model-specific-controls {
-  ion-label {
-    font-size: 14px;
-    margin-bottom: 10px;
-    display: block;
+  ion-icon {
+    font-size: 16px;
+    --ionicon-stroke-width: 48px;
   }
 }
 
 .button-row {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  margin-bottom: 6px;
+}
+
+.control-section,
+.control-group {
+  padding: 2px 0;
+  margin-bottom: 6px;
+}
+
+.control-header {
+  margin: 3px 0;
+  text-align: center;
+
+  ion-label {
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+.uv-controls {
+  display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: space-between;
+
+  .control-group {
+    width: 48%;
+  }
 }
 
-.api-tag {
-  color: #ff4500;
-  font-size: 12px;
+.projection-selector {
+  display: flex;
+  align-items: center;
+  margin-bottom: 3px;
+
+  ion-label {
+    margin-right: 10px;
+    margin-bottom: 0;
+  }
+
+  .button-row {
+    margin: 1px 0 0 0;
+  }
 }
 
-/* Orbital controls indicator */
+.texture-controls {
+  margin-top: 3px;
+}
+
+.thumbnail-preview {
+  height: 40px;
+  width: 40px;
+  overflow: hidden;
+  border-radius: 4px;
+  margin: 4px 8px 4px 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+ion-range {
+  --bar-height: 2px;
+  --knob-size: 12px;
+  min-height: 24px;
+  padding: 0;
+  margin: 0;
+}
+
 .orbit-controls-indicator {
   position: absolute;
   top: 20px;
@@ -90,48 +200,4 @@ ion-content {
   width: 40px;
   height: 40px;
   opacity: 0.6;
-}
-
-.texture-size-selector {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  ion-label {
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #333;
-  }
-}
-
-.floating-controls {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-  backdrop-filter: blur(4px);
-  max-width: 90%;
-}
-
-@media (max-width: 480px) {
-  .floating-controls {
-    bottom: 16px;
-    right: 16px;
-    left: 16px; /* On small screens, extend across the bottom */
-    padding: 8px;
-  }
-  
-  .button-row {
-    gap: 6px;
-  }
-  
-  ion-button {
-    --padding-start: 8px;
-    --padding-end: 8px;
-  }
 }

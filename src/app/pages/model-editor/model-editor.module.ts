@@ -1,6 +1,8 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonHeader, IonToolbar, IonButtons, IonMenuButton, IonTitle, IonContent } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { ModelEditorPage } from './model-editor.page';
 
 @NgModule({
   imports: [
@@ -11,14 +13,8 @@ import { IonHeader, IonToolbar, IonButtons, IonMenuButton, IonTitle, IonContent 
         path: '',
         component: ModelEditorPage
       }
-    ]),
-    IonHeader,
-    IonToolbar,
-    IonButtons,
-    IonMenuButton,
-    IonTitle,
-    IonContent
+    ])
   ],
   declarations: [ModelEditorPage]
 })
-export class ModelEditorPageModule {}
+export class ModelEditorPageModule { }

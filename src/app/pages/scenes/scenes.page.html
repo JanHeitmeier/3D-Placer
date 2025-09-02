@@ -8,17 +8,94 @@
 </ion-header>
 
 <ion-content>
-  <ion-list>
-    <ion-item *ngFor="let scene of (sceneManager.scenes$ | async)">
-      <ion-label>{{ scene.name }}</ion-label>
-      <ion-button (click)="openScene(scene.id)">Open</ion-button>
-      <ion-button (click)="deleteScene(scene.id)" color="danger">Delete</ion-button>
-    </ion-item>
+  <!-- Add loading spinner -->
+  <div class="loading-container" *ngIf="isLoading">
+    <ion-spinner></ion-spinner>
+    <p>Loading scenes...</p>
+  </div>
+
+  <ion-list *ngIf="(sceneManager.scenes$ | async) as scenes; else noScenes">
+    <ng-container *ngFor="let scene of scenes">
+      <ion-item class="scene-item">
+        <ion-label>
+          <h2>{{ scene.name }}</h2>
+          <p>Last Modified: {{ formatDate(scene.lastModified) }}</p>
+        </ion-label>
+        <ion-button (click)="toggleEditMenu(scene.id)" fill="clear">
+          <ion-icon [name]="editingSceneId === scene.id ? 'chevron-up' : 'pencil'"></ion-icon>
+        </ion-button>
+        <ion-button (click)="confirmDelete(scene.id)" color="danger" fill="clear">
+          <ion-icon name="trash"></ion-icon>
+        </ion-button>
+      </ion-item>
+      
+      <!-- Edit panel as a separate item that's conditionally shown -->
+      <div class="edit-panel-wrapper" [class.visible]="editingSceneId === scene.id">
+        <div class="edit-panel">
+          <div class="panel-grid">
+            <div class="thumbnail-container">
+              <!-- Placeholder for scene thumbnail -->
+              <div class="placeholder-image">
+                <ion-icon name="image-outline"></ion-icon>
+              </div>
+            </div>
+            <div class="details-grid">
+              <div class="scene-name">
+                <ion-input [(ngModel)]="scene.name" (blur)="renameScene(scene.id, scene.name)"></ion-input>
+              </div>
+              <div class="scene-info">
+                <p>Scene Size: {{ getSceneSize(scene) }} MB</p>
+                <p>Model Count: <span *ngIf="modelCountCache[scene.id] !== undefined">{{ modelCountCache[scene.id] }} items</span>
+                   <span *ngIf="modelCountCache[scene.id] === undefined">Loading...</span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <ion-button expand="block" color="primary" (click)="openScene(scene.id)">Edit Scene</ion-button>
+        </div>
+      </div>
+    </ng-container>
   </ion-list>
 
+  <ng-template #noScenes>
+    <div class="empty-state">
+      <h2>No Scenes Yet</h2>
+      <p>Click the + button below to create your first scene</p>
+    </div>
+  </ng-template>
+
+  <!-- Custom Create Scene Popup -->
+  <div class="popup-overlay" *ngIf="showCreatePopup">
+    <div class="popup-container">
+      <h2>Create New Scene</h2>
+      <p>Enter a name for your new scene</p>
+      
+      <ion-input 
+        class="scene-name-input"
+        label="Scene Name" 
+        label-placement="stacked" 
+        placeholder="Enter scene name" 
+        [(ngModel)]="newSceneName">
+      </ion-input>
+      
+      <div class="popup-buttons">
+        <ion-button fill="outline" (click)="cancelCreateScene()">Cancel</ion-button>
+        <ion-button (click)="confirmCreateScene()">Create</ion-button>
+      </div>
+    </div>
+  </div>
+
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="createScene()">
+    <ion-fab-button (click)="openCreatePopup()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 </ion-content>
+
+<ion-alert
+  [isOpen]="showDeleteAlert"
+  header="Delete Scene"
+  message="Are you sure you want to delete this scene? This action cannot be undone."
+  [buttons]="alertButtons"
+  (didDismiss)="showDeleteAlert = false">
+</ion-alert>

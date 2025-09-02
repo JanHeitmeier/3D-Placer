@@ -1,6 +1,22 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonHeader, IonToolbar, IonButtons, IonMenuButton, IonTitle, IonContent } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { SceneEditorPage } from './scene-editor.page';
+import { 
+  IonHeader, 
+  IonToolbar, 
+  IonButtons, 
+  IonMenuButton, 
+  IonTitle, 
+  IonContent,
+  IonButton,
+  IonIcon,
+  IonLabel,
+  IonGrid,
+  IonRow,
+  IonCol 
+} from '@ionic/angular/standalone';
 
 @NgModule({
   imports: [
@@ -17,7 +33,13 @@ import { IonHeader, IonToolbar, IonButtons, IonMenuButton, IonTitle, IonContent 
     IonButtons,
     IonMenuButton,
     IonTitle,
-    IonContent
+    IonContent,
+    IonButton,
+    IonIcon,
+    IonLabel,
+    IonGrid,
+    IonRow,
+    IonCol
   ],
   declarations: [SceneEditorPage]
 })

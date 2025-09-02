@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IonMenu, IonContent, IonList, IonListHeader, IonMenuToggle, IonItem, IonIcon, IonLabel, IonRouterOutlet } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { list, cube, create, build, settings, helpCircle } from 'ionicons/icons';
+import { list, cube, create, build, settings, helpCircle, saveOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-root',
@@ -31,6 +31,6 @@ export class AppComponent {
   }
   
   constructor() {
-    addIcons({ list, cube, create, build, settings, helpCircle });
+    addIcons({ list, cube, create, build, settings, helpCircle, 'save-outline': saveOutline, 'chevron-back-outline': chevronBackOutline, 'chevron-forward-outline': chevronForwardOutline });
   }
 }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Existing colors -->
+    <color name="colorPrimary">#3880ff</color>
+    <color name="colorPrimaryDark">#3171e0</color>
+    <color name="colorAccent">#3880ff</color>
+    
+    <!-- Add the missing splash background color -->
+    <color name="splash_background">#ffffff</color>
+</resources>

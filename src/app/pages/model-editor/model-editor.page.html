@@ -4,38 +4,100 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>Model Viewer: <ion-text *ngIf="model">{{ model.name }}</ion-text></ion-title>
+
+    <!-- Add thumbnail preview in the header - fixed with safe navigation operator -->
+    <ion-buttons slot="end" *ngIf="model?.thumbnailUrl">
+      <div class="thumbnail-preview">
+        <img [src]="model?.thumbnailUrl" alt="Thumbnail" />
+      </div>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <!-- Full-height canvas container -->
   <div class="threejs-container" #rendererContainer></div>
-  
-  <!-- Floating controls panel -->
-  <div class="floating-controls">
+
+  <!-- Toggle button for controls panel with correct arrow direction -->
+  <div class="panel-toggle" (click)="toggleControlsPanel()">
+    <span *ngIf="isPanelVisible">&gt;</span>
+    <span *ngIf="!isPanelVisible">&lt;</span>
+  </div>
+
+  <!-- Floating controls panel with ngClass for collapse/expand -->
+  <div class="floating-controls" [ngClass]="{'collapsed': !isPanelVisible}">
     <div class="button-row">
+      <ion-button (click)="generateNewThumbnail()" size="small">
+        <ion-icon name="camera-outline" slot="start"></ion-icon>
+        New Thumbnail
+      </ion-button>
+
+      <ion-button (click)="resetView()" size="small">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        View Reset
+      </ion-button>
+
       <ion-button (click)="applyRandomTexture()" size="small">
         <ion-icon name="color-palette-outline" slot="start"></ion-icon>
         Random Texture
       </ion-button>
-      
-      <ion-button (click)="generateNewThumbnail()" size="small">
-        <ion-icon name="camera-outline" slot="start"></ion-icon>
-        Save Thumbnail
-      </ion-button>
-      
-      <ion-button (click)="resetView()" size="small">
-        <ion-icon name="refresh-outline" slot="start"></ion-icon>
-        Reset View
+
+      <!-- Add the new Load Texture button -->
+      <ion-button (click)="loadTextureFromGallery()" size="small">
+        <ion-icon name="image-outline" slot="start"></ion-icon>
+        Load Texture
       </ion-button>
     </div>
-    
+
     <div class="texture-size-selector" *ngIf="showTextureOptions">
       <ion-label>Texture Size:</ion-label>
       <div class="button-row">
         <ion-button (click)="applyTexture(256)" size="small">256px</ion-button>
         <ion-button (click)="applyTexture(512)" size="small">512px</ion-button>
         <ion-button (click)="applyTexture(1024)" size="small">1024px</ion-button>
+      </div>
+    </div>
+
+    <!-- Texture controls with planar option removed -->
+    <div class="texture-controls" *ngIf="model?.textureUrl">
+      <div class="control-header">
+        <ion-label>Texture Mapping</ion-label>
+      </div>
+
+      <div class="projection-selector">
+        <ion-label>Projection:</ion-label>
+        <div class="button-row">
+          <ion-button (click)="changeTextureProjection('box')"
+            [color]="model?.textureProjection === 'box' ? 'primary' : 'medium'" size="small">Box</ion-button>
+          <ion-button (click)="changeTextureProjection('cylinder')"
+            [color]="model?.textureProjection === 'cylinder' ? 'primary' : 'medium'" size="small">Cylinder</ion-button>
+        </div>
+      </div>
+
+      <div class="uv-controls">
+        <div class="control-group">
+          <ion-label>Offset U:</ion-label>
+          <ion-range [(ngModel)]="model!.textureOffsetU" min="-1" max="1" step="0.01"
+            (ionChange)="updateTextureSettings()"></ion-range>
+        </div>
+
+        <div class="control-group">
+          <ion-label>Offset V:</ion-label>
+          <ion-range [(ngModel)]="model!.textureOffsetV" min="-1" max="1" step="0.01"
+            (ionChange)="updateTextureSettings()"></ion-range>
+        </div>
+
+        <div class="control-group">
+          <ion-label>Scale U:</ion-label>
+          <ion-range [(ngModel)]="model!.textureScaleU" min="0.1" max="5" step="0.1"
+            (ionChange)="updateTextureSettings()"></ion-range>
+        </div>
+
+        <div class="control-group">
+          <ion-label>Scale V:</ion-label>
+          <ion-range [(ngModel)]="model!.textureScaleV" min="0.1" max="5" step="0.1"
+            (ionChange)="updateTextureSettings()"></ion-range>
+        </div>
       </div>
     </div>
   </div>

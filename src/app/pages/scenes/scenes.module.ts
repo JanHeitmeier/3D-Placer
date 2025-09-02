@@ -1,6 +1,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonHeader, IonToolbar, IonButtons, IonMenuButton, IonTitle, IonContent, IonList, IonItem, IonLabel, IonButton, IonFab, IonFabButton, IonIcon } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { ScenesPage } from './scenes.page';
+import { IonHeader, IonToolbar, IonButtons, IonMenuButton, IonTitle, IonContent, IonList, IonItem, IonLabel, IonButton, IonFab, IonFabButton, IonIcon, IonInput, IonAlert } from '@ionic/angular/standalone';
 
 @NgModule({
   imports: [
@@ -24,7 +27,9 @@ import { IonHeader, IonToolbar, IonButtons, IonMenuButton, IonTitle, IonContent,
     IonButton,
     IonFab,
     IonFabButton,
-    IonIcon
+    IonIcon,
+    IonInput,
+    IonAlert
   ],
   declarations: [ScenesPage]
 })

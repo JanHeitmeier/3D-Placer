@@ -3,9 +3,37 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Scene Editor</ion-title>
+    <ion-title>{{ sceneName || 'Scene Editor' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="saveScene()">
+        <ion-icon name="save-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
+  <div class="content-container">
+    <!-- Three.js container -->
+    <div class="threejs-container" #threeJsContainer></div>
+    
+    <!-- Panel toggle button -->
+    <div class="panel-toggle" (click)="toggleControlPanel()">
+      <ion-icon [name]="isPanelCollapsed ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
+    </div>
+    
+    <!-- Floating controls panel -->
+    <div class="floating-controls" [class.collapsed]="isPanelCollapsed">
+      <div class="control-header">
+        <ion-label>Scene Controls</ion-label>
+      </div>
+      
+      <!-- Control panel content will be added later -->
+      <div class="control-section">
+        <div class="control-group">
+          <ion-label>Scene Objects: {{ sceneObjectCount }}</ion-label>
+        </div>
+      </div>
+    </div>
+  </div>
 </ion-content>
