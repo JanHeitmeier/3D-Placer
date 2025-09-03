@@ -84,14 +84,12 @@ export class ModelEditorPage implements OnInit, OnDestroy {
     if (modelId) {
       await this.loadModel(modelId);
     } else {
-      // Try to load last opened model
       const lastModelId = localStorage.getItem('lastOpenedModelId');
       if (lastModelId) {
         await this.loadModel(lastModelId);
       }
     }
 
-    // Delay initialization to ensure DOM is ready
     setTimeout(() => {
       this.setupThreeJs();
     }, 150);
@@ -508,4 +506,77 @@ export class ModelEditorPage implements OnInit, OnDestroy {
       this.showToast('Error accessing gallery. Please check permissions.');
     }
   }
+async takeTextureFromCamera() {
+  if (!this.model) return;
+
+  try {
+    const image = await Camera.getPhoto({
+      quality: 90,
+      allowEditing: false,
+      resultType: CameraResultType.DataUrl,
+      source: CameraSource.Camera
+    });
+
+    if (!image.dataUrl) {
+      throw new Error('No image data received');
+    }
+
+    const loading = await this.loadingCtrl.create({
+      message: 'Applying texture...'
+    });
+    await loading.present();
+
+    try {
+      const timestamp = Date.now();
+      const texturePath = `textures/${this.model.id}_camera_${timestamp}.jpg`;
+
+      await this.storageService.saveBase64Image(image.dataUrl, texturePath);
+      const localTextureUrl = await this.getTextureUrl(texturePath);
+
+      const textureSettings: TextureSettings = {
+        textureUrl: localTextureUrl,
+        projection: 'box',
+        scaleU: 1,
+        scaleV: 1,
+        offsetU: 0,
+        offsetV: 0
+      };
+
+      await this.threeJsService.applyTextureToObject(this.modelObject!, textureSettings);
+
+      const updatedModel: ModelInfo = {
+        ...this.model,
+        texturePath: texturePath,
+        textureUrl: localTextureUrl,
+        textureProjection: 'box',
+        textureOffsetU: 0,
+        textureOffsetV: 0,
+        textureScaleU: 1,
+        textureScaleV: 1
+      };
+
+      await this.modelManager.updateModelInfo(updatedModel);
+      this.model = updatedModel;
+
+      this.showToast('Camera texture applied successfully');
+    } catch (error) {
+      console.error('Error applying camera texture:', error);
+      this.showToast('Error applying texture');
+    } finally {
+      loading.dismiss();
+    }
+
+  } catch (error) {
+    console.error('Error accessing camera:', error);
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = (error as any).message;
+      if (errorMessage.includes('cancelled') || errorMessage.includes('User cancelled')) {
+        return; 
+      }
+    }
+
+    this.showToast('Error accessing camera. Please check permissions.');
+  }
+}
 }

@@ -19,12 +19,14 @@ import {
   IonIcon, 
   IonInput, 
   IonAlert,
-  IonSpinner // Add this import
+  IonSpinner 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, pencil, trash, chevronDown, chevronUp, imageOutline } from 'ionicons/icons';
 import { SceneInfo } from '../../core/models/scene-info.model';
-import { Scene } from '../../core/models/scene.model';
+import { OnInit, OnDestroy } from '@angular/core';
+import { Keyboard } from '@capacitor/keyboard';
+
 
 @Component({
   selector: 'app-scenes',
@@ -52,7 +54,7 @@ import { Scene } from '../../core/models/scene.model';
     IonSpinner // Add this to imports
   ]
 })
-export class ScenesPage {
+export class ScenesPage implements OnInit, OnDestroy {
   @ViewChild('sceneNameInput') sceneNameInput!: ElementRef;
   
   editingSceneId: string | null = null;
@@ -61,6 +63,8 @@ export class ScenesPage {
   showCreatePopup = false;  // Changed from showCreateAlert
   newSceneName = '';
   isLoading = true;
+  isKeyboardVisible = false;
+  keyboardHeight = 0;
 
   // Add buttons configuration as a property
   alertButtons = [
@@ -115,6 +119,29 @@ export class ScenesPage {
     });
   }
 
+  ngOnInit() {
+    // Add keyboard event listeners
+    Keyboard.addListener('keyboardWillShow', (info) => {
+      this.isKeyboardVisible = true;
+      this.keyboardHeight = info.keyboardHeight || 0;
+      this.adjustPopupForKeyboard(true);
+    });
+    
+    Keyboard.addListener('keyboardWillHide', () => {
+      this.isKeyboardVisible = false;
+      this.keyboardHeight = 0;
+      this.adjustPopupForKeyboard(false);
+    });
+  }
+  
+  ngOnDestroy() {
+    // Clear cache when data might have changed
+    this.modelCountCache = {};
+    
+    // Remove keyboard listeners
+    Keyboard.removeAllListeners();
+  }
+  
   openScene(sceneId: string) {
     this.router.navigate(['/scene-editor', { id: sceneId }]);
   }
@@ -205,11 +232,31 @@ export class ScenesPage {
     }
   }
 
-  // Clear cache when data might have changed
-  ngOnDestroy() {
-    this.modelCountCache = {};
+  private adjustPopupForKeyboard(isVisible: boolean) {
+    if (!this.showCreatePopup) return;
+    
+    const popupContainer = document.querySelector('.popup-container') as HTMLElement;
+    if (!popupContainer) return;
+    
+    if (isVisible) {
+      // On small screens, move the popup up to stay above the keyboard
+      const viewportHeight = window.innerHeight;
+      if (viewportHeight < 600) {
+        popupContainer.style.transform = `translateY(-${this.keyboardHeight / 2}px)`;
+      }
+    } else {
+      // Reset position when keyboard hides
+      popupContainer.style.transform = 'translateY(0)';
+    }
   }
-
+  
+  // Add method to handle form submission via keyboard
+  handleInputKeyup(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      this.confirmCreateScene();
+    }
+  }
+  
   formatDate(timestamp: number): string {
     return new Date(timestamp).toLocaleString();
   }

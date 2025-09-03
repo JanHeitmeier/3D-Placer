@@ -7,6 +7,7 @@ import { ColladaLoader } from 'three/examples/jsm/loaders/ColladaLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { BehaviorSubject } from 'rxjs';
 import { ModelInfo } from '../models/model-info.model';
+import { SettingsService } from './settings.service';
 
 export interface ThreeJsOptions {
   backgroundColor?: THREE.ColorRepresentation;
@@ -59,7 +60,7 @@ export class ThreeJsService {
 
   private _clock = new THREE.Clock();
 
-  constructor(private zone: NgZone) { }
+  constructor(private zone: NgZone, private settingsService: SettingsService) { }
 
 
   public init(container: HTMLElement, options: ThreeJsOptions = {}): void {
@@ -416,9 +417,11 @@ export class ThreeJsService {
   }
 
   private getDefaultOptions(options: ThreeJsOptions): ThreeJsOptions {
+    const settings = this.settingsService.getCurrentSettings();
+    
     return {
       backgroundColor: options.backgroundColor ?? 0xf0f0f0,
-      gridSize: options.gridSize ?? 10,
+      gridSize: options.gridSize ?? settings.gridSize,  // Use the setting here
       gridDivisions: options.gridDivisions ?? 10,
       gridColor1: options.gridColor1 ?? 0x888888,
       gridColor2: options.gridColor2 ?? 0xcccccc,

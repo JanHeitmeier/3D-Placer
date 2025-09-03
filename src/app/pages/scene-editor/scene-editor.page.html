@@ -60,10 +60,12 @@
       <!-- Transform Controls -->
       <div class="control-section" *ngIf="selectedObject">
         <div class="control-header">
-          <ion-label>Transform: {{ selectedObjectName }}</ion-label>
-          <ion-button fill="clear" size="small" color="danger" (click)="confirmDeleteSelectedObject()">
-            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-          </ion-button>
+          <div class="ion-display-flex ion-align-items-center ion-justify-content-center" style="width: 100%">
+            <ion-label>Transform: {{ selectedObjectName }}</ion-label>
+            <ion-button fill="clear" size="small" color="danger" (click)="confirmDeleteSelectedObject()" class="ion-margin-start">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
+          </div>
         </div>
         
         <!-- Location Controls -->
@@ -74,8 +76,8 @@
           </ion-label>
           <div class="transform-row">
             <div class="transform-control">
-              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'x', -0.1)">
-                &lt;
+              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'x', -0.1)" class="arrow-button">
+               &lt;
               </ion-button>
               <ion-input 
                 type="number" 
@@ -83,13 +85,13 @@
                 (ionInput)="onTransformInputChange('position', 'x', $event)"
                 class="transform-input">
               </ion-input>
-              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'x', 0.1)">
+              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'x', 0.1)" class="arrow-button">
                 &gt;
               </ion-button>
             </div>
             <div class="transform-control">
-              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'y', -0.1)">
-                &lt;
+              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'y', -0.1)" class="arrow-button">
+               &lt;
               </ion-button>
               <ion-input 
                 type="number" 
@@ -97,12 +99,12 @@
                 (ionInput)="onTransformInputChange('position', 'y', $event)"
                 class="transform-input">
               </ion-input>
-              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'y', 0.1)">
-                &gt;
+              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'y', 0.1)" class="arrow-button">
+               &gt;
               </ion-button>
             </div>
             <div class="transform-control">
-              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'z', -0.1)">
+              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'z', -0.1)" class="arrow-button">
                 &lt;
               </ion-button>
               <ion-input 
@@ -111,8 +113,8 @@
                 (ionInput)="onTransformInputChange('position', 'z', $event)"
                 class="transform-input">
               </ion-input>
-              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'z', 0.1)">
-                &gt;
+              <ion-button fill="clear" size="small" (click)="adjustTransform('position', 'z', 0.1)" class="arrow-button">
+               &gt;
               </ion-button>
             </div>
           </div>
@@ -126,7 +128,7 @@
           </ion-label>
           <div class="transform-row">
             <div class="transform-control">
-              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'x', -5)">
+              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'x', -5)" class="arrow-button">
                 &lt;
               </ion-button>
               <ion-input 
@@ -135,12 +137,12 @@
                 (ionInput)="onTransformInputChange('rotation', 'x', $event)"
                 class="transform-input">
               </ion-input>
-              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'x', 5)">
+              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'x', 5)" class="arrow-button">
                 &gt;
               </ion-button>
             </div>
             <div class="transform-control">
-              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'y', -5)">
+              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'y', -5)" class="arrow-button">
                 &lt;
               </ion-button>
               <ion-input 
@@ -149,12 +151,12 @@
                 (ionInput)="onTransformInputChange('rotation', 'y', $event)"
                 class="transform-input">
               </ion-input>
-              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'y', 5)">
+              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'y', 5)" class="arrow-button">
                 &gt;
               </ion-button>
             </div>
             <div class="transform-control">
-              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'z', -5)">
+              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'z', -5)" class="arrow-button">
                 &lt;
               </ion-button>
               <ion-input 
@@ -163,7 +165,7 @@
                 (ionInput)="onTransformInputChange('rotation', 'z', $event)"
                 class="transform-input">
               </ion-input>
-              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'z', 5)">
+              <ion-button fill="clear" size="small" (click)="adjustTransform('rotation', 'z', 5)" class="arrow-button">
                 &gt;
               </ion-button>
             </div>

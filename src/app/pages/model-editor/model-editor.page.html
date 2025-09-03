@@ -42,7 +42,11 @@
         Random Texture
       </ion-button>
 
-      <!-- Add the new Load Texture button -->
+      <ion-button (click)="takeTextureFromCamera()" size="small">
+        <ion-icon name="camera-outline" slot="start"></ion-icon>
+        Take Texture
+      </ion-button>
+      
       <ion-button (click)="loadTextureFromGallery()" size="small">
         <ion-icon name="image-outline" slot="start"></ion-icon>
         Load Texture

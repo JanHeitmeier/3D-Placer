@@ -31,6 +31,7 @@ import { ModelSelectorComponent } from '../../shared/components/model-selector/m
 import { addIcons } from 'ionicons';
 import { add, chevronDownOutline, chevronUpOutline, saveOutline, sunnyOutline, moonOutline, partlySunnyOutline, trashOutline, moveOutline, resizeOutline, refreshOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
+import { Keyboard } from '@capacitor/keyboard';
 
 export type LightingPreset = 'high-noon' | 'twilight' | 'night';
 
@@ -109,6 +110,8 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
   private directionalLight!: THREE.DirectionalLight;
   private bottomLight!: THREE.DirectionalLight;
 
+  private isKeyboardVisible = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -123,15 +126,13 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
   async ngOnInit() {
     this.sceneId = this.route.snapshot.paramMap.get('id');
     
-    // If no scene ID is provided, try to load the last opened scene
     if (!this.sceneId) {
-      const lastOpenedSceneId = await this.sceneManagerService.getLastOpenedScene();
-      if (lastOpenedSceneId) {
-        // Navigate to the last opened scene
-        this.router.navigate(['/scene-editor', lastOpenedSceneId]);
-        return;
-      }
-      // If no last opened scene, we'll create a new one in ngAfterViewInit
+      this.sceneManagerService.getLastOpenedScene().then(lastOpenedSceneId => {
+        if (lastOpenedSceneId) {
+          this.router.navigate(['/scene-editor', lastOpenedSceneId]);
+          this.isNavigatingToExistingScene = true;
+        }
+      });
     }
     
     this.modelSubscription = this.modelManagerService.models$.subscribe(() => {
@@ -139,9 +140,26 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
         this.refreshSceneModels();
       }
     });
+    
+    // Add keyboard event listeners
+    Keyboard.addListener('keyboardWillShow', () => {
+      this.isKeyboardVisible = true;
+      this.adjustUIForKeyboard(true);
+    });
+    
+    Keyboard.addListener('keyboardWillHide', () => {
+      this.isKeyboardVisible = false;
+      this.adjustUIForKeyboard(false);
+    });
   }
 
+  private isNavigatingToExistingScene = false;
+
   ngAfterViewInit() {
+    if (this.isNavigatingToExistingScene) {
+      return;
+    }
+
     setTimeout(() => {
       this.initThreeJs();
       
@@ -159,6 +177,9 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
     }
     
     this.threeJsService.dispose();
+    
+    // Remove keyboard listeners
+    Keyboard.removeAllListeners();
   }
 
   toggleControlPanel() {
@@ -803,5 +824,26 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.showDeleteAlert = false;
+  }
+
+  private adjustUIForKeyboard(isVisible: boolean) {
+    const controlsElement = document.querySelector('.floating-controls') as HTMLElement;
+    
+    if (isVisible && controlsElement) {
+      // When keyboard is visible, ensure the panel stays in view
+      controlsElement.style.maxHeight = '45vh';
+      controlsElement.style.overflow = 'auto';
+      
+      // Scroll to the active input
+      setTimeout(() => {
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement && activeElement.tagName === 'INPUT') {
+          activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    } else if (controlsElement) {
+      // Reset to original styling
+      controlsElement.style.maxHeight = '80vh';
+    }
   }
 }

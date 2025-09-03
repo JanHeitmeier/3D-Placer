@@ -1,6 +1,11 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonHeader, IonToolbar, IonButtons, IonMenuButton, IonTitle, IonContent, IonList, IonItem, IonLabel } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { SettingsPage } from './settings.page';
+import { IonHeader, IonToolbar, IonButtons, IonMenuButton, IonTitle, 
+         IonContent, IonList, IonItem, IonLabel, IonToggle, 
+         IonRange, IonButton } from '@ionic/angular/standalone';
 
 @NgModule({
   imports: [
@@ -20,7 +25,10 @@ import { IonHeader, IonToolbar, IonButtons, IonMenuButton, IonTitle, IonContent,
     IonContent,
     IonList,
     IonItem,
-    IonLabel
+    IonLabel,
+    IonToggle,
+    IonRange,
+    IonButton
   ],
   declarations: [SettingsPage]
 })

@@ -18,6 +18,11 @@ const config: CapacitorConfig = {
       spinnerColor: "#999999",
       layoutName: "launch_screen",
     },
+    StatusBar: {
+      style: "dark",
+      backgroundColor: "#ffffff",
+      overlaysWebView: false
+    },
   },
 };
 

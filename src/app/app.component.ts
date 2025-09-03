@@ -1,9 +1,8 @@
-import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IonMenu, IonContent, IonList, IonListHeader, IonMenuToggle, IonItem, IonIcon, IonLabel, IonRouterOutlet } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { list, cube, create, build, settings, helpCircle, saveOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 @Component({
   selector: 'app-root',
@@ -25,12 +24,23 @@ export class AppComponent {
     { title: 'Help', url: '/help', icon: 'help-circle' },
   ];
   
-  //  Backwards comp.
-  public get appPages() {
-    return [...this.mainMenuItems, ...this.bottomMenuItems];
+  constructor() {
+    this.initializeApp();
   }
   
-  constructor() {
-    addIcons({ list, cube, create, build, settings, helpCircle, 'save-outline': saveOutline, 'chevron-back-outline': chevronBackOutline, 'chevron-forward-outline': chevronForwardOutline });
+  async initializeApp() {
+    try {
+      // Configure StatusBar
+      StatusBar.setOverlaysWebView({ overlay: false });
+      StatusBar.setBackgroundColor({ color: '#000000' });
+      StatusBar.setStyle({ style: Style.Dark });
+    } catch (err) {
+      console.error('Error initializing StatusBar', err);
+    }
+  }
+  
+  //  Backwards comp.
+  public get appPages() {
+    return this.mainMenuItems;
   }
 }
