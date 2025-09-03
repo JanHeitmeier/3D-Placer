@@ -71,11 +71,13 @@
       <p>Enter a name for your new scene</p>
       
       <ion-input 
+        #sceneNameInput
         class="scene-name-input"
         label="Scene Name" 
         label-placement="stacked" 
         placeholder="Enter scene name" 
-        [(ngModel)]="newSceneName">
+        [(ngModel)]="newSceneName"
+        autofocus="true">
       </ion-input>
       
       <div class="popup-buttons">

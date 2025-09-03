@@ -10,6 +10,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 })
 export class SceneManagerService {
   private readonly SCENES_MANIFEST_KEY = 'scenes-manifest.json';
+  private readonly LAST_OPENED_SCENE_KEY = 'last-opened-scene.json';
   private scenesSubject = new BehaviorSubject<SceneInfo[]>([]);
   public scenes$: Observable<SceneInfo[]> = this.scenesSubject.asObservable();
 
@@ -44,6 +45,9 @@ export class SceneManagerService {
     }
     await this.storageService.saveJSON(this.SCENES_MANIFEST_KEY, manifest);
     this.scenesSubject.next(manifest.scenes);
+    
+    // Update last opened scene
+    await this.setLastOpenedScene(scene.id);
   }
 
   async deleteScene(id: string): Promise<void> {
@@ -52,6 +56,12 @@ export class SceneManagerService {
     manifest.scenes = manifest.scenes.filter((s: SceneInfo) => s.id !== id);
     await this.storageService.saveJSON(this.SCENES_MANIFEST_KEY, manifest);
     this.scenesSubject.next(manifest.scenes);
+    
+    // Clear last opened scene if it was the deleted one
+    const lastOpenedScene = await this.getLastOpenedScene();
+    if (lastOpenedScene === id) {
+      await this.clearLastOpenedScene();
+    }
   }
 
   async createNewScene(name: string): Promise<Scene> {
@@ -63,5 +73,29 @@ export class SceneManagerService {
     };
     await this.saveScene(newScene);
     return newScene;
+  }
+
+  async setLastOpenedScene(sceneId: string): Promise<void> {
+    await this.storageService.saveJSON(this.LAST_OPENED_SCENE_KEY, { sceneId });
+  }
+
+  async getLastOpenedScene(): Promise<string | null> {
+    try {
+      const data = await this.storageService.readJSON(this.LAST_OPENED_SCENE_KEY);
+      if (data && data.sceneId) {
+        // Verify the scene still exists
+        const scenes = await this.getScenes();
+        const sceneExists = scenes.some(scene => scene.id === data.sceneId);
+        return sceneExists ? data.sceneId : null;
+      }
+      return null;
+    } catch (error) {
+      console.warn('Error getting last opened scene:', error);
+      return null;
+    }
+  }
+
+  async clearLastOpenedScene(): Promise<void> {
+    await this.storageService.deleteFile(this.LAST_OPENED_SCENE_KEY);
   }
 }

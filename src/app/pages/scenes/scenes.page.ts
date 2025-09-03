@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SceneManagerService } from '../../core/services/scene-manager.service';
@@ -53,6 +53,8 @@ import { Scene } from '../../core/models/scene.model';
   ]
 })
 export class ScenesPage {
+  @ViewChild('sceneNameInput') sceneNameInput!: ElementRef;
+  
   editingSceneId: string | null = null;
   showDeleteAlert = false;
   sceneToDelete: string | null = null;
@@ -133,6 +135,13 @@ export class ScenesPage {
   openCreatePopup() {
     this.newSceneName = '';
     this.showCreatePopup = true;
+    
+    // Focus the input after the popup is shown
+    setTimeout(() => {
+      if (this.sceneNameInput?.nativeElement) {
+        this.sceneNameInput.nativeElement.setFocus();
+      }
+    }, 100);
   }
   
   cancelCreateScene() {

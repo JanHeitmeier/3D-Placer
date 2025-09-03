@@ -9,13 +9,20 @@ import {
 import { LoadingController, ToastController } from '@ionic/angular/standalone';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'; // Add this import
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import * as THREE from 'three';
 import { ModelManagerService } from '../../core/services/model-manager.service';
 import { StorageService } from '../../core/services/storage.service';
 import { ModelInfo } from '../../core/models/model-info.model';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { ThreeJsService } from '../../core/services/three-js.service';
+import { ThreeJsService, TextureSettings } from '../../core/services/three-js.service';
+// Add icon imports
+import { addIcons } from 'ionicons';
+import { 
+  cameraOutline, 
+  refreshOutline, 
+  colorPaletteOutline, 
+  imageOutline 
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-model-editor',
@@ -45,16 +52,11 @@ export class ModelEditorPage implements OnInit, OnDestroy {
   showTextureOptions: boolean = false;
 
   // Three.js properties
-  private renderer!: THREE.WebGLRenderer;
-  private scene!: THREE.Scene;
-  private camera!: THREE.PerspectiveCamera;
-  private controls!: OrbitControls;
   private modelObject: THREE.Object3D | null = null;
-  private animationFrameId: number | null = null;
   private originalCameraPosition: THREE.Vector3 | null = null;
   private originalControlsTarget: THREE.Vector3 | null = null;
 
-  // Add this property
+  // Panel visibility
   isPanelVisible = true;
 
   constructor(
@@ -65,9 +67,15 @@ export class ModelEditorPage implements OnInit, OnDestroy {
     private zone: NgZone,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
-    private threeJsService: ThreeJsService // Add this line
+    private threeJsService: ThreeJsService
   ) {
-
+    // Register icons
+    addIcons({ 
+      cameraOutline, 
+      refreshOutline, 
+      colorPaletteOutline, 
+      imageOutline 
+    });
   }
 
   async ngOnInit() {
@@ -83,32 +91,14 @@ export class ModelEditorPage implements OnInit, OnDestroy {
       }
     }
 
-    this.setupThreeJs();
+    // Delay initialization to ensure DOM is ready
+    setTimeout(() => {
+      this.setupThreeJs();
+    }, 150);
   }
 
   ngOnDestroy() {
-    // Use the service's dispose method to clean up
     this.threeJsService.dispose();
-
-    // No need for all the manual cleanup code that was here before
-  }
-
-  private disposeScene(scene: THREE.Scene) {
-    scene.traverse((object) => {
-      if (object instanceof THREE.Mesh) {
-        if (object.geometry) {
-          object.geometry.dispose();
-        }
-
-        if (object.material) {
-          if (Array.isArray(object.material)) {
-            object.material.forEach(material => material.dispose());
-          } else {
-            object.material.dispose();
-          }
-        }
-      }
-    });
   }
 
   private async loadModel(modelId: string) {
@@ -118,7 +108,6 @@ export class ModelEditorPage implements OnInit, OnDestroy {
     await loading.present();
 
     try {
-      // Get model info
       const modelInfo = await this.modelManager.getModelInfo(modelId);
       if (!modelInfo) {
         throw new Error('Model not found');
@@ -127,8 +116,7 @@ export class ModelEditorPage implements OnInit, OnDestroy {
       this.model = modelInfo;
       localStorage.setItem('lastOpenedModelId', modelId);
 
-      // Load model into Three.js scene if scene is ready
-      if (this.scene) {
+      if (this.threeJsService.scene) {
         await this.loadModelIntoScene();
       }
     } catch (error) {
@@ -141,49 +129,38 @@ export class ModelEditorPage implements OnInit, OnDestroy {
   }
 
   private setupThreeJs() {
-    // Get the container
     const container = this.rendererContainer.nativeElement;
 
-    // Initialize ThreeJS with our preferred options
-    this.threeJsService.init(container, {
-      backgroundColor: 0xf0f0f0,
-      gridSize: 10,
-      gridDivisions: 10,
-      gridColor1: 0x888888,
-      gridColor2: 0xcccccc,
-      addBottomLight: true,
-      cameraPosition: new THREE.Vector3(0, 2, 5)
-    });
-
-    // Store references to important objects
-    this.scene = this.threeJsService.scene;
-    this.camera = this.threeJsService.camera;
-    this.renderer = this.threeJsService.renderer;
-    this.controls = this.threeJsService.controls;
-
-    // Load the model if available
-    if (this.model) {
-      this.loadModelIntoScene();
+    // Ensure container has dimensions
+    if (container.clientWidth === 0 || container.clientHeight === 0) {
+      console.warn('Container has zero dimensions, waiting...');
+      setTimeout(() => this.setupThreeJs(), 100);
+      return;
     }
 
-    // Start animation loop
-    this.animate();
+    console.log(`Setting up ThreeJS with container dimensions: ${container.clientWidth}x${container.clientHeight}`);
 
-    // Handle window resize
-    window.addEventListener('resize', this.onWindowResize.bind(this));
-  }
+    try {
+      this.threeJsService.init(container, {
+        backgroundColor: 0xf0f0f0,
+        gridSize: 10,
+        gridDivisions: 10,
+        gridColor1: 0x888888,
+        gridColor2: 0xcccccc,
+        addBottomLight: true,
+        cameraPosition: new THREE.Vector3(0, 2, 5)
+      });
 
-  private animate() {
-    // Run the animation loop outside Angular's change detection
-    this.zone.runOutsideAngular(() => {
-      const animateLoop = () => {
-        this.animationFrameId = requestAnimationFrame(animateLoop);
-        this.controls.update();
-        this.renderer.render(this.scene, this.camera);
-      };
+      if (this.model) {
+        this.loadModelIntoScene();
+      }
 
-      animateLoop();
-    });
+      window.addEventListener('resize', this.onWindowResize.bind(this));
+    } catch (error) {
+      console.error('Error setting up ThreeJS:', error);
+      // Retry after a delay
+      setTimeout(() => this.setupThreeJs(), 200);
+    }
   }
 
   private onWindowResize() {
@@ -191,9 +168,13 @@ export class ModelEditorPage implements OnInit, OnDestroy {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
+    if (width > 0 && height > 0) {
+      this.threeJsService.camera.aspect = width / height;
+      this.threeJsService.camera.updateProjectionMatrix();
+      this.threeJsService.renderer.setSize(width, height);
+    } else {
+      console.warn('Invalid container dimensions on resize');
+    }
   }
 
   private async loadModelIntoScene() {
@@ -201,7 +182,7 @@ export class ModelEditorPage implements OnInit, OnDestroy {
 
     try {
       if (this.modelObject) {
-        this.scene.remove(this.modelObject);
+        this.threeJsService.scene.remove(this.modelObject);
         this.modelObject = null;
       }
 
@@ -210,23 +191,24 @@ export class ModelEditorPage implements OnInit, OnDestroy {
         throw new Error('Could not get model URL');
       }
 
-      const object = await this.loadModelObject(modelUrl);
+      const object = await this.threeJsService.loadObjectToScene(modelUrl, this.threeJsService.scene);
       if (!object) {
         throw new Error('Failed to load 3D model');
       }
 
+      // Center and position the model
       const box = new THREE.Box3().setFromObject(object);
       const center = box.getCenter(new THREE.Vector3());
       object.position.sub(center);
       object.position.y = 0;
 
-      this.scene.add(object);
       this.modelObject = object;
       this.threeJsService.fitCameraToObject(object);
 
-      this.originalCameraPosition = this.camera.position.clone();
-      this.originalControlsTarget = this.controls.target.clone();
+      this.originalCameraPosition = this.threeJsService.camera.position.clone();
+      this.originalControlsTarget = this.threeJsService.controls.target.clone();
 
+      // Apply texture if the model has one
       if (this.model.textureUrl) {
         console.log('Model has texture, applying automatically:', this.model.textureUrl);
         await this.applyTextureWithSettings();
@@ -238,42 +220,14 @@ export class ModelEditorPage implements OnInit, OnDestroy {
     }
   }
 
-  private async loadModelObject(modelUrl: string): Promise<THREE.Object3D> {
-    try {
-      return await this.threeJsService.loadObjectToScene(modelUrl, this.scene);
-    } catch (error) {
-      console.error('Error loading model:', error);
-      throw error;
-    }
-  }
-
-  private fitCameraToObject(object: THREE.Object3D, offset: number = 1.5) {
-    const box = new THREE.Box3().setFromObject(object);
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
-
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const fov = this.camera.fov * (Math.PI / 180);
-    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-    cameraZ *= offset;
-
-    this.camera.position.set(center.x, center.y + maxDim / 3, center.z + cameraZ);
-    this.camera.lookAt(center);
-    this.camera.updateProjectionMatrix();
-
-    this.controls.target.copy(center);
-    this.controls.update();
-  }
-
-
   resetView() {
     if (this.originalCameraPosition && this.originalControlsTarget && this.modelObject) {
-      this.camera.position.copy(this.originalCameraPosition);
-      this.controls.target.copy(this.originalControlsTarget);
-      this.controls.update();
+      this.threeJsService.camera.position.copy(this.originalCameraPosition);
+      this.threeJsService.controls.target.copy(this.originalControlsTarget);
+      this.threeJsService.controls.update();
       this.showToast('View reset');
     } else if (this.modelObject) {
-      this.fitCameraToObject(this.modelObject);
+      this.threeJsService.fitCameraToObject(this.modelObject);
       this.showToast('View reset');
     }
   }
@@ -290,54 +244,41 @@ export class ModelEditorPage implements OnInit, OnDestroy {
       if (this.modelObject) {
         console.log('Creating offscreen renderer for thumbnail');
 
-        // Create an offscreen renderer and scene (won't affect the UI)
-        const thumbnailSize = 512; // Consistent size for thumbnails
+        const thumbnailSize = 512;
         const offscreenRenderer = new THREE.WebGLRenderer({
           antialias: true,
           preserveDrawingBuffer: true
         });
         offscreenRenderer.setSize(thumbnailSize, thumbnailSize);
-        offscreenRenderer.setClearColor(0xf0f0f0); // Match the main scene background
+        offscreenRenderer.setClearColor(0xf0f0f0);
 
-        // Create a new scene for the thumbnail
         const thumbnailScene = new THREE.Scene();
         thumbnailScene.background = new THREE.Color(0xf0f0f0);
 
-        // Add the same lighting as the main scene
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         thumbnailScene.add(ambientLight);
 
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.copy(this.scene.getObjectByName('DirectionalLight')?.position || new THREE.Vector3(1, 1, 1));
+        directionalLight.position.copy(this.threeJsService.scene.getObjectByName('DirectionalLight')?.position || new THREE.Vector3(1, 1, 1));
         thumbnailScene.add(directionalLight);
 
-        // Clone the model
         const modelClone = this.modelObject.clone();
         thumbnailScene.add(modelClone);
 
-        // Create a new camera with the same properties as the main camera
-        const thumbnailCamera = this.camera.clone();
-        thumbnailCamera.aspect = 1.0; // Square aspect ratio
+        const thumbnailCamera = this.threeJsService.camera.clone();
+        thumbnailCamera.aspect = 1.0;
         thumbnailCamera.updateProjectionMatrix();
 
-        // Render the thumbnail
         offscreenRenderer.render(thumbnailScene, thumbnailCamera);
-
-        // Get the image data
         const dataUrl = offscreenRenderer.domElement.toDataURL('image/png');
-
-        // Clean up resources
         offscreenRenderer.dispose();
 
         try {
           await this.modelManager.saveThumbnail(this.model.id, dataUrl);
-
-          // Update the local model reference with the latest data including the new thumbnail URL
           const updatedModel = await this.modelManager.getModelInfo(this.model.id);
           if (updatedModel) {
             this.model = updatedModel;
           }
-
           await this.showToast('Thumbnail saved successfully');
         } catch (error) {
           console.error('Failed to save thumbnail:', error);
@@ -352,18 +293,15 @@ export class ModelEditorPage implements OnInit, OnDestroy {
     }
   }
 
-  // Add the missing showToast method
   private async showToast(message: string, duration: number = 2000): Promise<void> {
     const toast = await this.toastCtrl.create({
       message: message,
       duration: duration,
       position: 'bottom'
     });
-
     return toast.present();
   }
 
-  // Add to model-editor.page.ts
   async applyRandomTexture() {
     this.showTextureOptions = true;
   }
@@ -377,47 +315,23 @@ export class ModelEditorPage implements OnInit, OnDestroy {
     await loading.present();
 
     try {
-      // Get random image from asset service
       const textureUrl = this.modelManager.getRandomImageUrl(size, size);
       const texturePath = `textures/${this.model.id}_texture.jpg`;
 
-      // Download and save the image
       await this.storageService.downloadAndSaveImage(textureUrl, texturePath);
-
-      // Get the local URL for the saved image
       const localTextureUrl = await this.getTextureUrl(texturePath);
 
-      // Apply the texture
-      const texture = await new Promise<THREE.Texture>((resolve, reject) => {
-        new THREE.TextureLoader().load(localTextureUrl, resolve, undefined, reject);
-      });
+      const textureSettings: TextureSettings = {
+        textureUrl: localTextureUrl,
+        projection: 'box',
+        scaleU: 1,
+        scaleV: 1,
+        offsetU: 0,
+        offsetV: 0
+      };
 
-      // Apply texture settings
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(1, 1);
+      await this.threeJsService.applyTextureToObject(this.modelObject, textureSettings);
 
-      // Create a new material with the texture
-      const material = new THREE.MeshStandardMaterial({
-        map: texture,
-        roughness: 0.7,
-        metalness: 0.2
-      });
-
-      // Apply the material to all meshes
-      this.modelObject.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          // Save original material for resetting if needed
-          if (!child.userData['originalMaterial']) {
-            child.userData['originalMaterial'] = child.material;
-          }
-
-          // Apply the new material
-          child.material = material;
-        }
-      });
-
-      // Update the model info
       const updatedModel: ModelInfo = {
         ...this.model,
         texturePath: texturePath,
@@ -429,7 +343,6 @@ export class ModelEditorPage implements OnInit, OnDestroy {
         textureScaleV: 1
       };
 
-      // Save the updated model info
       await this.modelManager.updateModelInfo(updatedModel);
       this.model = updatedModel;
 
@@ -443,99 +356,6 @@ export class ModelEditorPage implements OnInit, OnDestroy {
     }
   }
 
-  private applyBoxProjection(texture: THREE.Texture) {
-    if (!this.modelObject) return;
-
-    const material = new THREE.MeshStandardMaterial({
-      map: texture,
-      roughness: 0.7,
-      metalness: 0.2
-    });
-
-    this.modelObject.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        if (!child.userData['originalMaterial']) {
-          child.userData['originalMaterial'] = child.material;
-        }
-        child.material = material;
-      }
-    });
-  }
-
-  private applyCylinderProjection(texture: THREE.Texture) {
-    if (!this.modelObject) return;
-
-    // Calculate bounding box for the model
-    const box = new THREE.Box3().setFromObject(this.modelObject);
-    const center = box.getCenter(new THREE.Vector3());
-
-    // Create a custom shader material for cylindrical mapping KI
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        map: { value: texture },
-        modelCenter: { value: center },
-        offsetU: { value: this.model?.textureOffsetU || 0 },
-        offsetV: { value: this.model?.textureOffsetV || 0 },
-        scaleU: { value: this.model?.textureScaleU || 1 },
-        scaleV: { value: this.model?.textureScaleV || 1 }
-      },
-      vertexShader: `
-      varying vec2 vUv;
-      uniform vec3 modelCenter;
-      uniform float offsetU;
-      uniform float offsetV;
-      uniform float scaleU;
-      uniform float scaleV;
-      void main() {
-        // Cylindrical UV mapping
-        vec3 localPos = position - modelCenter;
-        float theta = atan(localPos.x, localPos.z);
-        float u = 0.5 + theta / (2.0 * 3.14159);
-        float v = 0.5 + localPos.y / 2.0;
-        // Apply offset and scale
-        vUv = vec2(u * scaleU + offsetU, v * scaleV + offsetV);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-      fragmentShader: `
-      varying vec2 vUv;
-      uniform sampler2D map;
-      void main() {
-        gl_FragColor = texture2D(map, vUv);
-      }
-    `
-    });
-
-    this.modelObject.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        if (!child.userData['originalMaterial']) {
-          child.userData['originalMaterial'] = child.material;
-        }
-        child.material = material;
-      }
-    });
-  }
-
-  private applyPlanarProjection(texture: THREE.Texture) {
-    if (!this.modelObject) return;
-
-    const material = new THREE.MeshStandardMaterial({
-      map: texture,
-      roughness: 0.7,
-      metalness: 0.2
-    });
-
-    this.modelObject.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        if (!child.userData['originalMaterial']) {
-          child.userData['originalMaterial'] = child.material;
-        }
-        child.material = material;
-      }
-    });
-  }
-
-  // Helper method to get texture URL from path
   private async getTextureUrl(path: string): Promise<string> {
     try {
       const fileUri = await Filesystem.getUri({
@@ -552,13 +372,10 @@ export class ModelEditorPage implements OnInit, OnDestroy {
     }
   }
 
-  // Add these methods to ModelEditorPage
-
   async changeTextureProjection(projection: 'box' | 'cylinder') {
     if (!this.model?.textureUrl || !this.modelObject) return;
 
     try {
-      // Update the model with the new projection
       const updatedModel = {
         ...this.model,
         textureProjection: projection
@@ -567,9 +384,7 @@ export class ModelEditorPage implements OnInit, OnDestroy {
       await this.modelManager.updateModelInfo(updatedModel);
       this.model = updatedModel;
 
-      // Re-apply the texture with the new projection
       await this.applyTextureWithSettings();
-
       this.showToast(`Applied ${projection} projection`);
     } catch (error) {
       console.error('Error changing projection:', error);
@@ -581,7 +396,6 @@ export class ModelEditorPage implements OnInit, OnDestroy {
     if (!this.model?.textureUrl) return;
 
     try {
-      // Update the model with new settings
       const updatedModel = {
         ...this.model,
         textureOffsetU: this.model.textureOffsetU,
@@ -591,8 +405,6 @@ export class ModelEditorPage implements OnInit, OnDestroy {
       };
 
       await this.modelManager.updateModelInfo(updatedModel);
-
-      // Re-apply the texture with new settings
       await this.applyTextureWithSettings();
     } catch (error) {
       console.error('Error updating texture settings:', error);
@@ -602,43 +414,36 @@ export class ModelEditorPage implements OnInit, OnDestroy {
   private async applyTextureWithSettings() {
     if (!this.model?.textureUrl || !this.modelObject) return;
 
-    // Load the texture
-    const texture = await new Promise<THREE.Texture>((resolve, reject) => {
-      new THREE.TextureLoader().load(this.model!.textureUrl!, resolve, undefined, reject);
-    });
+    try {
+      const textureSettings: TextureSettings = {
+        textureUrl: this.model.textureUrl,
+        projection: this.model.textureProjection || 'box',
+        scaleU: this.model.textureScaleU || 1,
+        scaleV: this.model.textureScaleV || 1,
+        offsetU: this.model.textureOffsetU || 0,
+        offsetV: this.model.textureOffsetV || 0
+      };
 
-    // Apply settings
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(this.model.textureScaleU || 1, this.model.textureScaleV || 1);
-    texture.offset.set(this.model.textureOffsetU || 0, this.model.textureOffsetV || 0);
-
-    // Apply based on projection type
-    if (this.model.textureProjection === 'cylinder') {
-      this.applyCylinderProjection(texture);
-    } else {
-      // Default to box projection
-      this.applyBoxProjection(texture);
+      await this.threeJsService.applyTextureToObject(this.modelObject, textureSettings);
+    } catch (error) {
+      console.error('Error applying texture with settings:', error);
+      this.showToast('Error applying texture');
     }
   }
-
-  // Add this method to your ModelEditorPage class
 
   toggleControlsPanel() {
     this.isPanelVisible = !this.isPanelVisible;
   }
 
-  // Add this method to your ModelEditorPage class
   async loadTextureFromGallery() {
     if (!this.model) return;
 
     try {
-      // Request permission and open gallery
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
-        source: CameraSource.Photos // This opens the gallery
+        source: CameraSource.Photos
       });
 
       if (!image.dataUrl) {
@@ -651,45 +456,23 @@ export class ModelEditorPage implements OnInit, OnDestroy {
       await loading.present();
 
       try {
-        // Create a unique filename for the texture
         const timestamp = Date.now();
         const texturePath = `textures/${this.model.id}_custom_${timestamp}.jpg`;
 
-        // Save the image to local storage
         await this.storageService.saveBase64Image(image.dataUrl, texturePath);
-
-        // Get the local URL for the saved image
         const localTextureUrl = await this.getTextureUrl(texturePath);
 
-        // Apply the texture
-        const texture = await new Promise<THREE.Texture>((resolve, reject) => {
-          new THREE.TextureLoader().load(localTextureUrl, resolve, undefined, reject);
-        });
+        const textureSettings: TextureSettings = {
+          textureUrl: localTextureUrl,
+          projection: 'box',
+          scaleU: 1,
+          scaleV: 1,
+          offsetU: 0,
+          offsetV: 0
+        };
 
-        // Apply texture settings
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(1, 1);
+        await this.threeJsService.applyTextureToObject(this.modelObject!, textureSettings);
 
-        // Create a new material with the texture
-        const material = new THREE.MeshStandardMaterial({
-          map: texture,
-          roughness: 0.7,
-          metalness: 0.2
-        });
-
-        this.modelObject!.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            if (!child.userData['originalMaterial']) {
-              child.userData['originalMaterial'] = child.material;
-            }
-
-      
-            child.material = material;
-          }
-        });
-
-  
         const updatedModel: ModelInfo = {
           ...this.model,
           texturePath: texturePath,
@@ -701,7 +484,6 @@ export class ModelEditorPage implements OnInit, OnDestroy {
           textureScaleV: 1
         };
 
-  
         await this.modelManager.updateModelInfo(updatedModel);
         this.model = updatedModel;
 
@@ -719,7 +501,6 @@ export class ModelEditorPage implements OnInit, OnDestroy {
       if (error && typeof error === 'object' && 'message' in error) {
         const errorMessage = (error as any).message;
         if (errorMessage.includes('cancelled') || errorMessage.includes('User cancelled')) {
-          // User cancelled the selection, don't show error
           return;
         }
       }

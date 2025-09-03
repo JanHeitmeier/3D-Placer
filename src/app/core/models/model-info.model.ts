@@ -9,7 +9,7 @@ export interface ModelInfo {
   // Texture properties
   texturePath?: string;
   textureUrl?: string;
-  textureProjection?: 'box' | 'cylinder' | 'planar';
+  textureProjection?: 'box' | 'cylinder';
   textureOffsetU?: number;
   textureOffsetV?: number;
   textureScaleU?: number;

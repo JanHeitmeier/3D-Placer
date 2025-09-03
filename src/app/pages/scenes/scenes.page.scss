@@ -58,6 +58,7 @@
   --padding-start: 0;
   font-weight: bold;
   border-bottom: 1px solid #ccc;
+  --color: black; /* Add this line to make text color black */
 }
 
 .scene-info p {
@@ -120,6 +121,7 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   --padding-start: 10px;
+  --color: black; /* Add this line to make text color black */
 }
 
 .popup-buttons {
