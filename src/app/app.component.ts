@@ -30,16 +30,15 @@ export class AppComponent {
   
   async initializeApp() {
     try {
-      // Configure StatusBar
       StatusBar.setOverlaysWebView({ overlay: false });
       StatusBar.setBackgroundColor({ color: '#000000' });
-      StatusBar.setStyle({ style: Style.Dark });
+      StatusBar.setStyle({ style: Style.Dark }); // Design für Abstandbar am Top End
     } catch (err) {
       console.error('Error initializing StatusBar', err);
     }
   }
   
-  //  Backwards comp.
+  //  Backwards comp. laut KI
   public get appPages() {
     return this.mainMenuItems;
   }

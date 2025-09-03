@@ -16,7 +16,9 @@ import {
   IonFabButton,
   IonInput,
   IonAlert,
-  ModalController
+  ModalController,
+  LoadingController,
+  ToastController
 } from '@ionic/angular/standalone';
 import { ThreeJsService, TextureSettings } from '../../core/services/three-js.service';
 import { SceneManagerService } from '../../core/services/scene-manager.service';
@@ -32,6 +34,7 @@ import { addIcons } from 'ionicons';
 import { add, chevronDownOutline, chevronUpOutline, saveOutline, sunnyOutline, moonOutline, partlySunnyOutline, trashOutline, moveOutline, resizeOutline, refreshOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
 import { Keyboard } from '@capacitor/keyboard';
+import { StorageService } from '../../core/services/storage.service';
 
 export type LightingPreset = 'high-noon' | 'twilight' | 'night';
 
@@ -118,7 +121,10 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
     private threeJsService: ThreeJsService,
     private sceneManagerService: SceneManagerService,
     private modelManagerService: ModelManagerService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private loadingCtrl: LoadingController,
+    private toastCtrl: ToastController,
+    private storageService: StorageService
   ) {
     addIcons({ add, chevronDownOutline, chevronUpOutline, saveOutline, sunnyOutline, moonOutline, partlySunnyOutline, trashOutline, moveOutline, resizeOutline, refreshOutline });
   }
@@ -192,7 +198,6 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
     this.updateSceneObjectsFromThreeJs();
     
     await this.sceneManagerService.saveScene(this.scene);
-    console.log('Scene saved successfully');
   }
 
   setLighting(preset: LightingPreset) {
@@ -289,9 +294,6 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
   private initThreeJsRenderer() {
     const container = this.threeJsContainer.nativeElement;
     
-    console.log('Initializing Three.js with container dimensions:', 
-      container.clientWidth, 'x', container.clientHeight);
-    
     try {
       this.threeJsService.init(container, {
         backgroundColor: 0x87CEEB,
@@ -351,7 +353,6 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
       window.addEventListener('resize', this.onWindowResize.bind(this));
       
       this.isThreeJsInitialized = true;
-      console.log('Three.js initialized successfully');
       
     } catch (error) {
       console.error('Error initializing Three.js:', error);
@@ -400,7 +401,6 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
     zAxisLine.userData['isGizmo'] = true; // Mark as gizmo so it's not saved
     this.threeJsScene.add(zAxisLine);
 
-    console.log('Axis gizmos added to scene');
   }
 
   private async loadScene() {
@@ -468,13 +468,11 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
       const modelInfo = await this.modelManagerService.getModelInfo(sceneObject.modelId);
       
       if (!modelInfo?.textureUrl) {
-        console.log('No texture found for model:', modelInfo?.name || sceneObject.modelId);
-        return; // No texture to apply
+        return; // No texture
       }
 
-      console.log('Applying texture to model in scene:', modelInfo.name, 'Texture URL:', modelInfo.textureUrl);
 
-      // Verify texture URL is accessible
+      // Verify texture URL
       try {
         const response = await fetch(modelInfo.textureUrl, { method: 'HEAD' });
         if (!response.ok) {
@@ -497,7 +495,6 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
 
       await this.threeJsService.applyTextureToObject(modelObject, textureSettings);
       
-      console.log('Texture applied successfully to model in scene');
     } catch (error) {
       console.error('Error applying texture to model in scene:', error);
     }
@@ -666,10 +663,15 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
   async showAddModelModal() {
     const models = await firstValueFrom(this.modelManagerService.models$);
     
-    if (!models || models.length === 0) {
-      console.log('No models available. Please add models first.');
-      return;
-    }
+  if (!models || models.length === 0) {
+    this.toastCtrl.create({
+      message: 'No models available. Please add models first.',
+      duration: 3000,
+      position: 'bottom',
+      color: 'warning'
+    }).then(toast => toast.present());
+    return;
+  }
     
     const modal = await this.modalController.create({
       component: ModelSelectorComponent,
@@ -704,12 +706,10 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
     
     const modelObject = await this.loadAndPlaceModel(sceneObject);
     
-    // Texture is already applied in loadAndPlaceModel
-    
     await this.saveScene();
   }
 
-  // Transform control methods
+  // Transform control methods Debugging mit KI
   adjustTransform(type: 'position' | 'rotation' | 'scale', axis: 'x' | 'y' | 'z', delta: number): void {
     if (!this.selectedObject) return;
 
@@ -802,25 +802,20 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
 
     const sceneObject = this.objectToSceneObject.get(this.selectedObject);
     if (sceneObject) {
-      // Remove from scene data
       const index = this.scene.objects.findIndex(obj => obj.id === sceneObject.id);
       if (index > -1) {
         this.scene.objects.splice(index, 1);
       }
 
-      // Remove from ThreeJS scene
       this.threeJsScene.remove(this.selectedObject);
 
-      // Clean up maps
       this.objectToSceneObject.delete(this.selectedObject);
       this.modelIdToObject.delete(sceneObject.modelId);
 
-      // Update UI
       this.sceneObjectCount = this.scene.objects.length;
       this.selectedObject = null;
       this.updateTransformsFromSelectedObject();
 
-      console.log('Object deleted from scene');
     }
 
     this.showDeleteAlert = false;
@@ -830,11 +825,10 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
     const controlsElement = document.querySelector('.floating-controls') as HTMLElement;
     
     if (isVisible && controlsElement) {
-      // When keyboard is visible, ensure the panel stays in view
-      controlsElement.style.maxHeight = '45vh';
+      controlsElement.style.maxHeight = '45vh'; // von Ki vorgeschlagen um den Editor mit zu bewegen
       controlsElement.style.overflow = 'auto';
       
-      // Scroll to the active input
+
       setTimeout(() => {
         const activeElement = document.activeElement as HTMLElement;
         if (activeElement && activeElement.tagName === 'INPUT') {
@@ -842,8 +836,67 @@ export class SceneEditorPage implements OnInit, AfterViewInit, OnDestroy {
         }
       }, 100);
     } else if (controlsElement) {
-      // Reset to original styling
+
       controlsElement.style.maxHeight = '80vh';
+    }
+  }
+
+  async generateNewThumbnail() { //Ki generierte Funktion anhand der vorher erstellten Generate Thumbnail Funktion aus Model Editor
+    if (!this.scene || !this.renderer) return;
+    
+    try {
+      const loading = await this.loadingCtrl.create({
+        message: 'Generating thumbnail...'
+      });
+      await loading.present();
+      
+
+      const originalWidth = this.renderer.domElement.width;
+      const originalHeight = this.renderer.domElement.height;
+      
+
+      this.renderer.setSize(1024, 1024);
+      this.camera.aspect = 1;
+      this.camera.updateProjectionMatrix();
+      this.renderer.render(this.threeJsScene, this.camera);
+      
+      // Capture the canvas content
+      const dataUrl = this.renderer.domElement.toDataURL('image/png');
+      
+      // Restore original size
+      this.renderer.setSize(originalWidth, originalHeight);
+      this.camera.aspect = originalWidth / originalHeight;
+      this.camera.updateProjectionMatrix();
+      
+      // Save the thumbnail
+      const timestamp = Date.now();
+      const thumbnailPath = `thumbnails/scene_${this.scene.id}_${timestamp}.png`;
+      
+      await this.storageService.saveBase64Image(dataUrl, thumbnailPath);
+      
+      // Update scene with new thumbnail path
+      this.scene.thumbnailPath = thumbnailPath;
+      await this.sceneManagerService.saveScene(this.scene);
+      
+      await loading.dismiss();
+      
+      // Show success message
+      const toast = await this.toastCtrl.create({
+        message: 'Thumbnail generated successfully',
+        duration: 2000,
+        position: 'bottom'
+      });
+      toast.present();
+    } catch (error) {
+      console.error('Error generating thumbnail:', error);
+      
+      const toast = await this.toastCtrl.create({
+        message: 'Failed to generate thumbnail',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      toast.present();
     }
   }
 }

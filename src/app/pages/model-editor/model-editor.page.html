@@ -5,7 +5,6 @@
     </ion-buttons>
     <ion-title>Model Viewer: <ion-text *ngIf="model">{{ model.name }}</ion-text></ion-title>
 
-    <!-- Add thumbnail preview in the header - fixed with safe navigation operator -->
     <ion-buttons slot="end" *ngIf="model?.thumbnailUrl">
       <div class="thumbnail-preview">
         <img [src]="model?.thumbnailUrl" alt="Thumbnail" />
@@ -15,16 +14,13 @@
 </ion-header>
 
 <ion-content>
-  <!-- Full-height canvas container -->
   <div class="threejs-container" #rendererContainer></div>
 
-  <!-- Toggle button for controls panel with correct arrow direction -->
   <div class="panel-toggle" (click)="toggleControlsPanel()">
     <span *ngIf="isPanelVisible">&gt;</span>
     <span *ngIf="!isPanelVisible">&lt;</span>
   </div>
 
-  <!-- Floating controls panel with ngClass for collapse/expand -->
   <div class="floating-controls" [ngClass]="{'collapsed': !isPanelVisible}">
     <div class="button-row">
       <ion-button (click)="generateNewThumbnail()" size="small">
@@ -46,7 +42,7 @@
         <ion-icon name="camera-outline" slot="start"></ion-icon>
         Take Texture
       </ion-button>
-      
+
       <ion-button (click)="loadTextureFromGallery()" size="small">
         <ion-icon name="image-outline" slot="start"></ion-icon>
         Load Texture
@@ -62,7 +58,6 @@
       </div>
     </div>
 
-    <!-- Texture controls with planar option removed -->
     <div class="texture-controls" *ngIf="model?.textureUrl">
       <div class="control-header">
         <ion-label>Texture Mapping</ion-label>

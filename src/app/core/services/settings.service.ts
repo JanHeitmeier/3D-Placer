@@ -10,6 +10,10 @@ export interface AppSettings {
 @Injectable({
     providedIn: 'root'
 })
+
+//Settings Service ist nicht funktionsfähig. 
+// Der Dark Mode toggle bewegt sich,aber wird nicht richtig in an die anderen Pages übermittelt. s
+// Die implementierung in die anderen Pages wurde entfernt. Abgesehen vom Import in  den ThreeJs Service
 export class SettingsService {
     private readonly SETTINGS_KEY = 'app-settings.json';
     private defaultSettings: AppSettings = {

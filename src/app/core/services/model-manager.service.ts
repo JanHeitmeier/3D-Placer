@@ -18,7 +18,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 export class ModelManagerService {
   private readonly MODELS_MANIFEST_KEY = 'models-manifest.json';
   private modelsSubject = new BehaviorSubject<ModelInfo[]>([]);
-  public models$: Observable<ModelInfo[]> = this.modelsSubject.asObservable();
+
+  public models$: Observable<ModelInfo[]> = this.modelsSubject.asObservable();  // K.I. Vorschlag für besseres Datenhandling
 
   constructor(
     private storageService: StorageService,
@@ -65,22 +66,20 @@ export class ModelManagerService {
       id: modelId,
       name: name,
       path: destinationPath,
-      thumbnailGenerated: false // Initialize flag to false
+      thumbnailGenerated: false 
     };
     manifest.models.push(newModel);
     await this.storageService.saveJSON(this.MODELS_MANIFEST_KEY, manifest);
 
-    // Initial update without thumbnail
+   
     this.modelsSubject.next(manifest.models);
 
     try {
-      console.log('Starting thumbnail generation for', newModel.id);
+     
       await this.tryGenerateThumbnail(newModel);
-      console.log('Thumbnail generation successful for', newModel.id);
-      // The saveThumbnail method will set the thumbnailGenerated flag
+   
     } catch (e) {
       console.error('Auto thumbnail generation failed for', newModel.id, e);
-      // Even if generation fails, mark it as attempted to prevent loops
       const updatedManifest = await this.storageService.readJSON(this.MODELS_MANIFEST_KEY) || { models: [] };
       const modelIndex = updatedManifest.models.findIndex((m: ModelInfo) => m.id === modelId);
       if (modelIndex > -1) {
@@ -101,7 +100,6 @@ export class ModelManagerService {
       manifest.models[modelIndex] = updatedModel;
       await this.storageService.saveJSON(this.MODELS_MANIFEST_KEY, manifest);
 
-      // Update the models in the BehaviorSubject
       const currentModels = this.modelsSubject.getValue();
       const updatedModels = currentModels.map(model =>
         model.id === updatedModel.id ? updatedModel : model
@@ -137,26 +135,20 @@ export class ModelManagerService {
   }
 
   public async tryGenerateThumbnail(model: ModelInfo): Promise<void> {
-    // Only run in environments with a DOM
     if (typeof document === 'undefined') {
-      console.log('No document available for thumbnail generation');
       throw new Error('No document available for thumbnail generation');
     }
-
-    console.log('Getting model path for', model.id);
     const modelUrl = await this.getModelPath(model.id);
     if (!modelUrl) {
       console.error('Model URL not available for', model.id);
       throw new Error('Model URL not available');
     }
-    console.log('Model URL obtained:', modelUrl);
-
     const canvasSize = 512;
     const canvas = document.createElement('canvas');
     canvas.width = canvasSize;
     canvas.height = canvasSize;
 
-    console.log('Setting up Three.js renderer');
+
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
     renderer.setSize(canvasSize, canvasSize);
 
@@ -173,9 +165,7 @@ export class ModelManagerService {
     scene.add(dir);
 
     try {
-      console.log('Loading 3D model', model.name);
       const obj = await this.loadModel(model, modelUrl);
-      console.log('Model loaded successfully');
 
       // Center and scale
       const box = new THREE.Box3().setFromObject(obj);
@@ -191,24 +181,19 @@ export class ModelManagerService {
       camera.position.set(0, 0, 1.8);
       camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-      console.log('Rendering scene to canvas');
       renderer.render(scene, camera);
 
-      console.log('Capturing canvas as data URL');
       const dataUrl = canvas.toDataURL('image/png');
-      console.log('Saving thumbnail for', model.id);
       await this.saveThumbnail(model.id, dataUrl);
-      console.log('Thumbnail saved successfully');
     } catch (error) {
       console.error('Error during thumbnail generation:', error);
       throw error;
     } finally {
-      // Cleanup
+      
       try {
         renderer.dispose();
-        // @ts-ignore
-        if (renderer.getContext) {
-          // Attempt to force context loss
+        
+        if (renderer.getContext()) {
           const gl = (renderer as any).getContext && (renderer as any).getContext();
           if (gl && gl.getExtension) {
             const loseExt = gl.getExtension('WEBGL_lose_context');
@@ -221,23 +206,19 @@ export class ModelManagerService {
     }
   }
 
-  // Extract the model loading logic to a separate method for better organization
+
   private async loadModel(model: ModelInfo, modelUrl: string): Promise<THREE.Object3D> {
     const extension = model.name.split('.').pop()?.toLowerCase();
 
     const loadGltf = () => new Promise<THREE.Object3D>(async (resolve, reject) => {
-      console.log('Using GLTFLoader');
       const loader = new GLTFLoader();
       try {
-        // Fetch the resource so we can handle blob URLs and binary .glb properly
         const resp = await fetch(modelUrl);
         const isGlb = (model.name.split('.').pop() || '').toLowerCase() === 'glb';
         if (isGlb) {
-          console.log('Processing as GLB binary');
           const arrayBuffer = await resp.arrayBuffer();
           loader.parse(arrayBuffer, '', (gltf: any) => resolve(gltf.scene || gltf), reject);
         } else {
-          console.log('Processing as GLTF text');
           const text = await resp.text();
           loader.parse(text, '', (gltf: any) => resolve(gltf.scene || gltf), reject);
         }
@@ -248,7 +229,6 @@ export class ModelManagerService {
     });
 
     const loadFbx = () => new Promise<THREE.Object3D>((resolve, reject) => {
-      console.log('Using FBXLoader');
       const loader = new FBXLoader();
       loader.load(modelUrl,
         (obj: any) => resolve(obj),
@@ -261,7 +241,6 @@ export class ModelManagerService {
     });
 
     const loadObj = () => new Promise<THREE.Object3D>((resolve, reject) => {
-      console.log('Using OBJLoader');
       const loader = new OBJLoader();
       loader.load(modelUrl,
         (obj: any) => resolve(obj),
@@ -274,7 +253,6 @@ export class ModelManagerService {
     });
 
     const loadDae = () => new Promise<THREE.Object3D>((resolve, reject) => {
-      console.log('Using ColladaLoader');
       const loader = new ColladaLoader();
       loader.load(modelUrl,
         (collada: any) => resolve(collada.scene || collada),
@@ -286,16 +264,14 @@ export class ModelManagerService {
       );
     });
 
-    // Prefer loader based on extension
-    try {
-      console.log(`Choosing loader based on extension: ${extension}`);
+    // Loader Switch
+        try {
       if (extension === 'glb' || extension === 'gltf') return await loadGltf();
       if (extension === 'fbx') return await loadFbx();
       if (extension === 'obj') return await loadObj();
       if (extension === 'dae') return await loadDae();
 
-      // Fallback order
-      console.log('No matching extension, trying loaders in sequence');
+          //  KI Vorschalg für automatisches Erkennen des Formats
       try {
         console.log('Trying GLTF loader');
         return await loadGltf();
@@ -338,11 +314,11 @@ export class ModelManagerService {
       });
       return Capacitor.convertFileSrc(fileUri.uri);
     } catch (e) {
-      // Fallback: try to read file as base64 and create a blob URL (works in browser / dev)
+      // Fallback: try to read file as base64 and create a blob URL K.I. Vorschlag
       try {
         const result = await Filesystem.readFile({ path: model.path, directory: Directory.Data });
         const base64 = result.data as string;
-        // Convert base64 to binary
+       
         const byteCharacters = atob(base64);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -359,9 +335,6 @@ export class ModelManagerService {
     }
   }
 
-  /**
-   * Return the raw ModelInfo object for a given id (or null if not found).
-   */
   async getModelInfo(modelId: string): Promise<ModelInfo | null> {
     const models = this.modelsSubject.getValue();
     const model = models.find(m => m.id === modelId) || null;
@@ -374,22 +347,20 @@ export class ModelManagerService {
 
       const thumbnailPath = `thumbnails/thumb_${modelId}_${Date.now()}.png`;
 
-      // Using a timestamp in the filename prevents caching issues
+      // Using a timestamp in the filename prevents caching issues K.I. Vorschlag
       let base64Data = imageData;
       const commaIndex = imageData.indexOf(',');
       if (imageData.startsWith('data:') && commaIndex > -1) {
         base64Data = imageData.substring(commaIndex + 1);
       }
 
-      console.log(`Saving thumbnail for model ${modelId} to ${thumbnailPath}`);
       await this.storageService.saveBase64(thumbnailPath, base64Data);
 
-      // Get the previous model info to delete old thumbnail
+      // Get the previous model info to delete old thumbnail K.I. Vorschlag
       const currentModel = await this.getModelInfo(modelId);
       if (currentModel?.thumbnailPath && currentModel.thumbnailPath !== thumbnailPath) {
         try {
           await this.storageService.deleteFile(currentModel.thumbnailPath);
-          console.log(`Deleted old thumbnail: ${currentModel.thumbnailPath}`);
         } catch (e) {
           console.warn(`Failed to delete old thumbnail: ${currentModel.thumbnailPath}`, e);
         }
@@ -403,10 +374,8 @@ export class ModelManagerService {
         manifest.models[modelIndex].thumbnailGenerated = true;
         await this.storageService.saveJSON(this.MODELS_MANIFEST_KEY, manifest);
 
-        // Get the new thumbnail URL and immediately update the models array
         const thumbnailUrl = await this.getThumbnailUrlFromPath(thumbnailPath);
 
-        // Update the models in the BehaviorSubject
         const currentModels = this.modelsSubject.getValue();
         const updatedModels = currentModels.map(model => {
           if (model.id === modelId) {
@@ -415,7 +384,6 @@ export class ModelManagerService {
           return model;
         });
 
-        console.log(`Updated thumbnail URL for model ${modelId}: ${thumbnailUrl}`);
         this.modelsSubject.next(updatedModels);
       }
     } catch (error) {
@@ -481,7 +449,6 @@ export class ModelManagerService {
           // If URL can't be retrieved but thumbnailGenerated is true, reset the flag
           // to prevent infinite refresh loops
           if (!url && model.thumbnailGenerated) {
-            console.log(`Fixing inconsistent state for model ${model.name}: resetting thumbnailGenerated flag`);
             const updatedManifest = await this.storageService.readJSON(this.MODELS_MANIFEST_KEY) || { models: [] };
             const modelIndex = updatedManifest.models.findIndex((m: ModelInfo) => m.id === model.id);
             if (modelIndex > -1) {

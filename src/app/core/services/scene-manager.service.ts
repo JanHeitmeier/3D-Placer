@@ -36,7 +36,12 @@ export class SceneManagerService {
     scene.lastModified = Date.now();
     await this.storageService.saveJSON(`scenes/scene_${scene.id}.json`, scene);
     const manifest = await this.storageService.readJSON(this.SCENES_MANIFEST_KEY) || { scenes: [] };
-    const sceneInfo: SceneInfo = { id: scene.id, name: scene.name, lastModified: scene.lastModified };
+    const sceneInfo: SceneInfo = { 
+      id: scene.id, 
+      name: scene.name, 
+      lastModified: scene.lastModified,
+      thumbnailPath: scene.thumbnailPath 
+    };
     const sceneIndex = manifest.scenes.findIndex((s: SceneInfo) => s.id === scene.id);
     if (sceneIndex > -1) {
       manifest.scenes[sceneIndex] = sceneInfo;
@@ -46,7 +51,7 @@ export class SceneManagerService {
     await this.storageService.saveJSON(this.SCENES_MANIFEST_KEY, manifest);
     this.scenesSubject.next(manifest.scenes);
     
-    // Update last opened scene
+    // Update last opened
     await this.setLastOpenedScene(scene.id);
   }
 
@@ -57,7 +62,7 @@ export class SceneManagerService {
     await this.storageService.saveJSON(this.SCENES_MANIFEST_KEY, manifest);
     this.scenesSubject.next(manifest.scenes);
     
-    // Clear last opened scene if it was the deleted one
+    // Clear last opened scene if its deleted
     const lastOpenedScene = await this.getLastOpenedScene();
     if (lastOpenedScene === id) {
       await this.clearLastOpenedScene();
@@ -83,7 +88,7 @@ export class SceneManagerService {
     try {
       const data = await this.storageService.readJSON(this.LAST_OPENED_SCENE_KEY);
       if (data && data.sceneId) {
-        // Verify the scene still exists
+        // Verify scene exists
         const scenes = await this.getScenes();
         const sceneExists = scenes.some(scene => scene.id === data.sceneId);
         return sceneExists ? data.sceneId : null;

@@ -179,7 +179,6 @@ export class ThreeJsService {
 
   public async applyAppropriateTexture(object: THREE.Object3D, modelInfo: ModelInfo): Promise<void> {
     if (modelInfo?.textureUrl) {
-      console.log('Texture found, applying to model:', modelInfo.name, 'Texture:', modelInfo.textureUrl);
 
       const textureSettings: TextureSettings = {
         textureUrl: modelInfo.textureUrl,
@@ -228,14 +227,12 @@ export class ThreeJsService {
 
   public async applyTextureToObject(object: THREE.Object3D, settings: TextureSettings): Promise<void> {
     return new Promise((resolve, reject) => {
-      console.log('Loading texture:', settings.textureUrl);
 
 
       const loader = new THREE.TextureLoader();
       loader.load(
         settings.textureUrl,
         (texture) => {
-          console.log('Texture loaded successfully:', settings.textureUrl);
           try {
 
             texture.wrapS = THREE.RepeatWrapping;
@@ -256,7 +253,6 @@ export class ThreeJsService {
 
             this.applyMaterialToObject(object, material);
 
-            console.log('Material applied successfully to object');
             resolve();
           } catch (error) {
             console.error('Error applying texture material:', error);
@@ -264,7 +260,6 @@ export class ThreeJsService {
           }
         },
         (progress) => {
-          console.log('Texture loading progress:', progress);
         },
         (error) => {
           console.error('Error loading texture:', settings.textureUrl, error);
@@ -353,7 +348,6 @@ export class ThreeJsService {
       return;
     }
 
-    console.log(`Resizing to: ${width}x${height}`);
 
     this._camera.aspect = width / height;
     this._camera.updateProjectionMatrix();
@@ -496,7 +490,6 @@ export class ThreeJsService {
   }
 
   private loadGLTFToScene(modelPath: string, targetScene: THREE.Scene, resolve: (value: THREE.Object3D) => void, reject: (reason: any) => void): void {
-    console.log('Loading GLTF model to scene:', modelPath);
     const loader = new GLTFLoader();
     loader.load(
       modelPath,
@@ -525,7 +518,7 @@ export class ThreeJsService {
         resolve(model);
       },
       (progress) => {
-        console.log(`Model loading progress: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
+        //Hier kann ein Progress tracking stattfinden, der Console. log dafür wurde entfernt.
       },
       (error) => {
         console.error('Error loading GLTF model:', error);
@@ -535,7 +528,6 @@ export class ThreeJsService {
   }
 
   private loadOBJToScene(modelPath: string, targetScene: THREE.Scene, resolve: (value: THREE.Object3D) => void, reject: (reason: any) => void): void {
-    console.log('Loading OBJ model to scene:', modelPath);
     const loader = new OBJLoader();
     loader.load(
       modelPath,
@@ -567,7 +559,6 @@ export class ThreeJsService {
       },
       (progress) => {
         if (progress.lengthComputable) {
-          console.log(`OBJ loading progress: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
         }
       },
       (error) => {
@@ -578,7 +569,6 @@ export class ThreeJsService {
   }
 
   private loadFBXToScene(modelPath: string, targetScene: THREE.Scene, resolve: (value: THREE.Object3D) => void, reject: (reason: any) => void): void {
-    console.log('Loading FBX model to scene:', modelPath);
     const loader = new FBXLoader();
     loader.load(
       modelPath,
@@ -610,7 +600,6 @@ export class ThreeJsService {
       },
       (progress) => {
         if (progress.lengthComputable) {
-          console.log(`FBX loading progress: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
         }
       },
       (error) => {
@@ -621,7 +610,6 @@ export class ThreeJsService {
   }
 
   private loadColladaToScene(modelPath: string, targetScene: THREE.Scene, resolve: (value: THREE.Object3D) => void, reject: (reason: any) => void): void {
-    console.log('Loading Collada model to scene:', modelPath);
     const loader = new ColladaLoader();
     loader.load(
       modelPath,
@@ -653,7 +641,6 @@ export class ThreeJsService {
       },
       (progress) => {
         if (progress.lengthComputable) {
-          console.log(`Collada loading progress: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
         }
       },
       (error) => {

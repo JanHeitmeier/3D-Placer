@@ -26,6 +26,8 @@ import { add, pencil, trash, chevronDown, chevronUp, imageOutline } from 'ionico
 import { SceneInfo } from '../../core/models/scene-info.model';
 import { OnInit, OnDestroy } from '@angular/core';
 import { Keyboard } from '@capacitor/keyboard';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 
 
 @Component({
@@ -51,7 +53,7 @@ import { Keyboard } from '@capacitor/keyboard';
     IonIcon, 
     IonInput, 
     IonAlert,
-    IonSpinner // Add this to imports
+    IonSpinner 
   ]
 })
 export class ScenesPage implements OnInit, OnDestroy {
@@ -60,13 +62,12 @@ export class ScenesPage implements OnInit, OnDestroy {
   editingSceneId: string | null = null;
   showDeleteAlert = false;
   sceneToDelete: string | null = null;
-  showCreatePopup = false;  // Changed from showCreateAlert
+  showCreatePopup = false; 
   newSceneName = '';
   isLoading = true;
   isKeyboardVisible = false;
   keyboardHeight = 0;
 
-  // Add buttons configuration as a property
   alertButtons = [
     {
       text: 'Cancel',
@@ -104,23 +105,24 @@ export class ScenesPage implements OnInit, OnDestroy {
     }
   ];
 
-  // Add a cache for scene model counts
+
   public modelCountCache: {[sceneId: string]: number} = {};
 
   constructor(public sceneManager: SceneManagerService, private router: Router) {
     addIcons({trash,imageOutline,add,pencil,chevronDown,chevronUp});
     
-    // Add subscription to know when scenes are loaded
     this.sceneManager.scenes$.subscribe(scenes => {
-      // Only set loading to false after we have data
       if (scenes) {
         this.isLoading = false;
+        if (scenes.length > 0) {
+          this.loadThumbnails(scenes);
+        }
       }
     });
   }
 
   ngOnInit() {
-    // Add keyboard event listeners
+
     Keyboard.addListener('keyboardWillShow', (info) => {
       this.isKeyboardVisible = true;
       this.keyboardHeight = info.keyboardHeight || 0;
@@ -135,10 +137,10 @@ export class ScenesPage implements OnInit, OnDestroy {
   }
   
   ngOnDestroy() {
-    // Clear cache when data might have changed
+
     this.modelCountCache = {};
     
-    // Remove keyboard listeners
+
     Keyboard.removeAllListeners();
   }
   
@@ -163,7 +165,6 @@ export class ScenesPage implements OnInit, OnDestroy {
     this.newSceneName = '';
     this.showCreatePopup = true;
     
-    // Focus the input after the popup is shown
     setTimeout(() => {
       if (this.sceneNameInput?.nativeElement) {
         this.sceneNameInput.nativeElement.setFocus();
@@ -192,12 +193,10 @@ export class ScenesPage implements OnInit, OnDestroy {
 
   toggleEditMenu(sceneId: string) {
     if (this.editingSceneId === sceneId) {
-      // Closing the panel
+
       this.editingSceneId = null;
     } else {
-      // Opening the panel - load data only when needed
       this.editingSceneId = sceneId;
-      // Load model count for this scene when panel is opened
       if (this.modelCountCache[sceneId] === undefined) {
         this.getSceneModelCount(sceneId);
       }
@@ -210,12 +209,12 @@ export class ScenesPage implements OnInit, OnDestroy {
   }
 
   getSceneSize(scene: SceneInfo): string {
-    // In a real app, calculate actual size
+    // Keine Zeit mehr zum Implementieren gehabt.
     return '0.5';
   }
 
   async getSceneModelCount(sceneId: string): Promise<number> {
-    // Check if we have a cached count first
+
     if (this.modelCountCache[sceneId] !== undefined) {
       return this.modelCountCache[sceneId];
     }
@@ -223,7 +222,7 @@ export class ScenesPage implements OnInit, OnDestroy {
     try {
       const scene = await this.sceneManager.getScene(sceneId);
       const count = scene?.objects?.length || 0;
-      // Cache the result
+
       this.modelCountCache[sceneId] = count;
       return count;
     } catch (error) {
@@ -239,17 +238,34 @@ export class ScenesPage implements OnInit, OnDestroy {
     if (!popupContainer) return;
     
     if (isVisible) {
-      // On small screens, move the popup up to stay above the keyboard
+      // PopUp wird nach oben verschoben, beim Tippen
       const viewportHeight = window.innerHeight;
       if (viewportHeight < 600) {
         popupContainer.style.transform = `translateY(-${this.keyboardHeight / 2}px)`;
       }
     } else {
-      // Reset position when keyboard hides
+      // Reset position
       popupContainer.style.transform = 'translateY(0)';
     }
   }
   
+  private async loadThumbnails(scenes: SceneInfo[]) {
+    for (const scene of scenes) {
+      try {
+        if (scene.thumbnailPath) {
+          const fileUri = await Filesystem.getUri({
+            directory: Directory.Data,
+            path: scene.thumbnailPath
+          });
+          // Use a different property for the display URL
+          (scene as any).thumbnailUrl = Capacitor.convertFileSrc(fileUri.uri);
+        }
+      } catch (error) {
+        console.warn(`Could not load thumbnail for scene ${scene.id}`, error);
+      }
+    }
+  }
+
   // Add method to handle form submission via keyboard
   handleInputKeyup(event: KeyboardEvent) {
     if (event.key === 'Enter') {

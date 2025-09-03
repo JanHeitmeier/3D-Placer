@@ -87,11 +87,9 @@ export class StorageService {
 
       try {
         await this.deleteFile(path);
-        console.log(`Removed existing file at ${path}`);
 
         await new Promise(resolve => setTimeout(resolve, 50));
       } catch (e) {
-        console.log(e);
       }
 
       await Filesystem.writeFile({
@@ -100,7 +98,6 @@ export class StorageService {
         directory: Directory.Data
       });
 
-      console.log(`File saved successfully to ${path}`);
     } catch (e) {
       console.error(`Error saving file to ${path}:`, e);
       throw e;
@@ -140,7 +137,6 @@ export class StorageService {
       });
 
       await this.saveBase64(destinationPath, base64Data);
-      console.log(`Image downloaded and saved to ${destinationPath}`);
     } catch (e) {
       console.error(`Error downloading and saving image from ${url}:`, e);
       throw e;
@@ -162,7 +158,6 @@ export class StorageService {
         directory: Directory.Data
       });
 
-      console.log('Base64 image saved successfully:', path);
     } catch (error) {
       console.error('Error saving base64 image:', error);
       throw error;

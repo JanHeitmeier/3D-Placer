@@ -8,7 +8,7 @@
 </ion-header>
 
 <ion-content>
-  <!-- Add loading spinner -->
+
   <div class="loading-container" *ngIf="isLoading">
     <ion-spinner></ion-spinner>
     <p>Loading scenes...</p>
@@ -28,16 +28,16 @@
           <ion-icon name="trash"></ion-icon>
         </ion-button>
       </ion-item>
-      
-      <!-- Edit panel as a separate item that's conditionally shown -->
+
       <div class="edit-panel-wrapper" [class.visible]="editingSceneId === scene.id">
         <div class="edit-panel">
           <div class="panel-grid">
             <div class="thumbnail-container">
-              <!-- Placeholder for scene thumbnail -->
-              <div class="placeholder-image">
+
+              <div class="placeholder-image" *ngIf="!scene.thumbnailUrl">
                 <ion-icon name="image-outline"></ion-icon>
               </div>
+              <img *ngIf="scene.thumbnailUrl" [src]="scene.thumbnailUrl" alt="Scene thumbnail">
             </div>
             <div class="details-grid">
               <div class="scene-name">
@@ -45,8 +45,9 @@
               </div>
               <div class="scene-info">
                 <p>Scene Size: {{ getSceneSize(scene) }} MB</p>
-                <p>Model Count: <span *ngIf="modelCountCache[scene.id] !== undefined">{{ modelCountCache[scene.id] }} items</span>
-                   <span *ngIf="modelCountCache[scene.id] === undefined">Loading...</span>
+                <p>Model Count: <span *ngIf="modelCountCache[scene.id] !== undefined">{{ modelCountCache[scene.id] }}
+                    items</span>
+                  <span *ngIf="modelCountCache[scene.id] === undefined">Loading...</span>
                 </p>
               </div>
             </div>
@@ -64,22 +65,15 @@
     </div>
   </ng-template>
 
-  <!-- Custom Create Scene Popup -->
   <div class="popup-overlay" *ngIf="showCreatePopup">
     <div class="popup-container">
       <h2>Create New Scene</h2>
       <p>Enter a name for your new scene</p>
-      
-      <ion-input 
-        #sceneNameInput
-        class="scene-name-input"
-        label="Scene Name" 
-        label-placement="stacked" 
-        placeholder="Enter scene name" 
-        [(ngModel)]="newSceneName"
-        autofocus="true">
+
+      <ion-input #sceneNameInput class="scene-name-input" label="Scene Name" label-placement="stacked"
+        placeholder="Enter scene name" [(ngModel)]="newSceneName" autofocus="true">
       </ion-input>
-      
+
       <div class="popup-buttons">
         <ion-button fill="outline" (click)="cancelCreateScene()">Cancel</ion-button>
         <ion-button (click)="confirmCreateScene()">Create</ion-button>
@@ -94,10 +88,7 @@
   </ion-fab>
 </ion-content>
 
-<ion-alert
-  [isOpen]="showDeleteAlert"
-  header="Delete Scene"
-  message="Are you sure you want to delete this scene? This action cannot be undone."
-  [buttons]="alertButtons"
+<ion-alert [isOpen]="showDeleteAlert" header="Delete Scene"
+  message="Are you sure you want to delete this scene? This action cannot be undone." [buttons]="alertButtons"
   (didDismiss)="showDeleteAlert = false">
 </ion-alert>

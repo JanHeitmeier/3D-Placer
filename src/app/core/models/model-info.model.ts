@@ -1,4 +1,5 @@
 export interface ModelInfo {
+  // Basic
   id: string;
   name: string;
   path: string;
@@ -6,7 +7,7 @@ export interface ModelInfo {
   thumbnailUrl?: string;
   thumbnailGenerated?: boolean;
 
-  // Texture properties
+  // Texture 
   texturePath?: string;
   textureUrl?: string;
   textureProjection?: 'box' | 'cylinder';

@@ -11,29 +11,22 @@
   <ion-list>
     <ion-item>
       <ion-label>Dark Mode</ion-label>
-      <ion-toggle 
-        [checked]="settings.darkMode" 
-        (ionChange)="updateDarkMode($event)">
+      <ion-toggle [checked]="settings.darkMode" (ionChange)="updateDarkMode($event)">
       </ion-toggle>
     </ion-item>
-    
+
     <ion-item>
       <ion-label>Grid Size</ion-label>
       <div class="range-value">{{ settings.gridSize }}</div>
     </ion-item>
-    
+
     <ion-item>
-      <ion-range 
-        [value]="settings.gridSize" 
-        min="5" 
-        max="20" 
-        step="1" 
-        (ionChange)="updateGridSize($event)"
+      <ion-range [value]="settings.gridSize" min="5" max="20" step="1" (ionChange)="updateGridSize($event)"
         labelPlacement="start">
         <div slot="label">Adjust grid size</div>
       </ion-range>
     </ion-item>
-    
+
     <ion-item lines="none">
       <ion-button expand="block" color="medium" (click)="resetSettings()">
         Reset to Defaults
