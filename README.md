@@ -19,7 +19,7 @@ The project integrates a model viewer, gallery loading, and API-driven texxture 
 
 ## Project Structure
 3D-Placer/  
-├── android/               Android platform integration  
+├── android/                 Android platform integration  
 ├── resources/             App resources and assets  
 ├── src/                   Angular application source code  
 │   ├── app/               Components, services, modules  
