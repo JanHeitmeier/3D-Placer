@@ -1,6 +1,6 @@
 # 3D‑Placer
 A lightweight Angular and Capacitor-based application for viewing, placing, and interacting with 3D models on mobile devices.  
-The project integrates a model viewer, gallery loading, and API-driven asset management to provide a streamlined workflow for displaying and positioning 3D content.
+The project integrates a model viewer, gallery loading, and API-driven texxture asset retrevial to provide a streamlined workflow for displaying and positioning 3D content using ThreeJS.
 
 ## Features
 - Interactive 3D model viewer  
@@ -43,13 +43,13 @@ ng build
 ng build
 npx cap sync
 npx cap open android
----
 
+```
 # Deutsche Version
 
 # 3D‑Placer
 Eine leichtgewichtige Angular- und Capacitor-Anwendung zum Anzeigen, Platzieren und Interagieren mit 3D‑Modellen auf mobilen Geräten.  
-Das Projekt kombiniert einen Model Viewer, Galerie-Ladevorgänge und API‑gestützte Asset-Verwaltung, um einen effizienten Workflow für die Darstellung und Positionierung von 3D‑Inhalten zu ermöglichen.
+Das Projekt kombiniert einen Model Viewer, Galerie-Ladevorgänge und API‑gestütztes Texture-Loading, um einen effizienten Workflow für die Darstellung und Positionierung von 3D‑Inhalten mithilfe von ThreeJS zu ermöglichen.
 
 ## Funktionen
 - Interaktiver 3D‑Model Viewer  
